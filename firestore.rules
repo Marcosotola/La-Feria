@@ -77,6 +77,13 @@ service cloud.firestore {
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
     }
 
+    // testimonials (colección en inglés usada por testimonialsService.js)
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
+    }
+
     // ===== VALORACIONES =====
     match /valoraciones/{valoracionId} {
       allow read: if true;
