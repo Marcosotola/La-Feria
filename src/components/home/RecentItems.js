@@ -308,14 +308,14 @@ export default function RecentItems() {
     <section className="py-0 w-full">
       <div className="w-full px-2 sm:px-4 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-gradient-to-r from-emerald-400 to-cyan-500 rounded-lg relative">
+          <div className="p-2 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg relative shadow-sm">
             <Sparkles className="w-6 h-6 text-white" />
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
           </div>
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
             Recién Publicado
           </h2>
-          <div className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium rounded-full">
+          <div className="px-2 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-medium rounded-full">
             Novedades
           </div>
         </div>
@@ -464,8 +464,8 @@ export default function RecentItems() {
                     key={i}
                     onClick={() => animateToIndex(i)}
                     className={`w-3 h-3 rounded-full transition-all duration-200 ${Math.round(currentIndex) === i
-                      ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 scale-125 shadow-md'
-                      : 'bg-gray-300 dark:bg-gray-600 hover:bg-emerald-300 dark:hover:bg-emerald-600'
+                      ? 'bg-gradient-to-r from-primary-500 to-primary-600 scale-125 shadow-md'
+                      : 'bg-gray-300 dark:bg-gray-600 hover:bg-primary-300 dark:hover:bg-primary-600'
                       }`}
                     disabled={isDragging || isTransitioning}
                   />

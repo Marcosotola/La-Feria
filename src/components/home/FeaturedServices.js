@@ -222,7 +222,7 @@ export default function FeaturedServices() {
     <section className="pb-2 lg:pb-4 w-full">
       <div className="w-full px-2 sm:px-4 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
+          <div className="p-2 bg-gradient-to-r from-accent-400 to-accent-500 rounded-lg shadow-sm">
             <Crown className="w-6 h-6 text-white fill-current" />
           </div>
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
@@ -308,8 +308,8 @@ export default function FeaturedServices() {
                     key={i}
                     onClick={() => animateToIndex(i)}
                     className={`w-3 h-3 rounded-full transition-all duration-200 ${Math.round(currentIndex) === i
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 scale-125 shadow-md'
-                      : 'bg-gray-300 dark:bg-gray-600 hover:bg-blue-300 dark:hover:bg-blue-600'
+                      ? 'bg-gradient-to-r from-accent-500 to-accent-600 scale-125 shadow-md'
+                      : 'bg-gray-300 dark:bg-gray-600 hover:bg-accent-300 dark:hover:bg-accent-600'
                       }`}
                     disabled={isDragging || isTransitioning}
                   />

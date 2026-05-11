@@ -184,29 +184,32 @@ export default function Header() {
             {/* Botón Dark/Light Mode */}
             <button
               onClick={toggleDarkMode}
-              className="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="w-12 h-12 flex items-center justify-center rounded-xl bg-accent-600 dark:bg-accent-700 border border-accent-700 dark:border-accent-800 shadow-sm active:scale-95 transition-all group"
               aria-label="Cambiar modo"
             >
               {theme === 'dark' ? (
-                <Sun className="w-5 h-5 text-gray-600 dark:text-gray-400 transition-all duration-300 hover:text-brand-teal-500" />
+                <Sun className="w-5 h-5 text-yellow-400 group-hover:scale-110 transition-transform" />
               ) : (
-                <Moon className="w-5 h-5 text-gray-600 dark:text-gray-400 transition-all duration-300 hover:text-brand-teal-500" />
+                <Moon className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
               )}
             </button>
 
-            {/* Logo Mobile con enlace */}
-            <Link href="/about" className="flex-1 flex items-center justify-center gap-3 group">
-              <Image
-                src="/logos/logo.png"
-                alt="La Feria Logo"
-                width={64}
-                height={64}
-                className="w-16 h-16 transition-transform duration-200 group-hover:scale-105"
-                priority
-              />
-              <h1 className="text-2xl font-bold transition-colors duration-200">
-                <span className="text-brand-teal-500 group-hover:text-brand-teal-600">La</span>{' '}
-                <span className="text-primary-500 group-hover:text-primary-600">Feria</span>
+            <Link href="/about" className="flex-1 flex items-center justify-center gap-3 group relative">
+              <div className="relative flex flex-col items-center">
+                <Image
+                  src="/logos/logo.png"
+                  alt="La Feria Logo"
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 relative z-10 transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-110 drop-shadow-sm"
+                  priority
+                />
+                {/* Sombra de la base para efecto flotado */}
+                <div className="w-8 h-1.5 bg-black/10 dark:bg-black/30 blur-[3px] rounded-[100%] mt-[-2px] transition-all duration-300 group-hover:scale-125 group-hover:bg-black/5 group-hover:blur-[4px]"></div>
+              </div>
+              <h1 className="text-3xl font-black transition-all duration-300 tracking-tighter relative group-hover:scale-105">
+                <span className="text-brand-teal-700 dark:text-brand-teal-400 drop-shadow-[0_4px_3px_rgba(0,0,0,0.1)]">La</span>{' '}
+                <span className="text-primary-500 dark:text-primary-400 drop-shadow-[0_4px_3px_rgba(0,0,0,0.1)]">Feria</span>
               </h1>
             </Link>
 
@@ -218,22 +221,22 @@ export default function Header() {
                   handleUserAction()
                 }}
                 disabled={loading}
-                className={`p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative ${
-                  isAuthenticated ? 'bg-brand-teal-500/10 dark:bg-brand-teal-400/10' : ''
+                className={`w-12 h-12 flex items-center justify-center rounded-xl bg-accent-600 dark:bg-accent-700 border border-accent-700 dark:border-accent-800 shadow-sm active:scale-95 transition-all ${
+                  isAuthenticated ? 'border-brand-teal-400 dark:border-brand-teal-600 ring-2 ring-accent-500/20' : ''
                 } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 aria-label={getUserButtonText()}
               >
                 {isAuthenticated ? (
-                  <div className="w-8 h-8 bg-gradient-to-br from-brand-teal-500 to-brand-teal-700 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-brand-teal-400 to-brand-teal-600 rounded-lg flex items-center justify-center shadow-sm">
                     <span className="text-xs font-bold text-white">
                       {getUserInitials()}
                     </span>
                   </div>
                 ) : (
-                  <User className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <User className="w-5 h-5 text-white" />
                 )}
                 {isAuthenticated && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+                  <div className="absolute top-1 left-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
                 )}
               </button>
 
@@ -339,23 +342,23 @@ export default function Header() {
             </div>
           </div>
 
-          {/* CTAs móviles integrados - Solo para usuarios no autenticados */}
+          {/* CTA móvil unificado - Solo para usuarios no autenticados */}
           {!isAuthenticated && !loading && (
-            <div className="flex items-center justify-between mb-4 px-1">
-              <button
-                onClick={handleNewUser}
-                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 transition-colors font-medium"
-              >
-                <HelpCircle className="w-4 h-4" />
-                ¿Eres nuevo?
-              </button>
-
+            <div className="mb-4">
               <button
                 onClick={handleCreateStore}
-                className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 text-sm"
+                className="w-full flex items-center justify-between bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold px-5 py-3.5 rounded-2xl transition-all duration-200 active:scale-[0.98] shadow-xl shadow-primary-500/40 group"
               >
-                <Plus className="w-4 h-4" />
-                Crear tienda
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <HelpCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-sm">¿Eres nuevo por aquí?</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white text-primary-600 px-4 py-1.5 rounded-xl shadow-sm">
+                  <Plus className="w-4 h-4" />
+                  <span className="text-sm font-bold">Crear tienda</span>
+                </div>
               </button>
             </div>
           )}
@@ -369,19 +372,23 @@ export default function Header() {
       <header className="hidden lg:block bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 transition-colors">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between gap-8">
-            {/* Logo Desktop con enlace */}
-            <Link href="/about" className="flex items-center flex-shrink-0 gap-4 group">
-              <Image
-                src="/logos/logo.png"
-                alt="La Feria Logo"
-                width={112}
-                height={112}
-                className="w-28 h-28 transition-transform duration-200 group-hover:scale-105"
-                priority
-              />
-              <h1 className="text-3xl xl:text-4xl font-bold transition-colors duration-200">
-                <span className="text-brand-teal-500 group-hover:text-brand-teal-600">La</span>{' '}
-                <span className="text-primary-500 group-hover:text-primary-600">Feria</span>
+            {/* Logo Desktop con enlace - Efecto flotado */}
+            <Link href="/about" className="flex items-center flex-shrink-0 gap-5 group relative">
+              <div className="relative flex flex-col items-center">
+                <Image
+                  src="/logos/logo.png"
+                  alt="La Feria Logo"
+                  width={112}
+                  height={112}
+                  className="w-28 h-28 relative z-10 transition-all duration-300 group-hover:-translate-y-2 group-hover:scale-105 drop-shadow-md"
+                  priority
+                />
+                {/* Sombra de la base para efecto flotado */}
+                <div className="w-16 h-2 bg-black/10 dark:bg-black/30 blur-[4px] rounded-[100%] mt-[-4px] transition-all duration-300 group-hover:scale-110 group-hover:bg-black/5 group-hover:blur-[6px]"></div>
+              </div>
+              <h1 className="text-4xl xl:text-5xl font-black transition-all duration-300 tracking-tighter relative group-hover:scale-105">
+                <span className="text-brand-teal-600 dark:text-brand-teal-400 drop-shadow-[0_5px_4px_rgba(0,0,0,0.12)]">La</span>{' '}
+                <span className="text-primary-500 dark:text-primary-400 drop-shadow-[0_5px_4px_rgba(0,0,0,0.12)]">Feria</span>
               </h1>
             </Link>
 
@@ -395,13 +402,14 @@ export default function Header() {
               {/* Dark Mode Toggle */}
               <button
                 onClick={toggleDarkMode}
-                className="p-3.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                className="w-12 h-12 flex items-center justify-center rounded-xl bg-accent-600 dark:bg-accent-700 border border-accent-700 dark:border-accent-800 hover:bg-accent-500 dark:hover:bg-accent-600 shadow-sm transition-all group"
+                title={theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}
                 aria-label="Cambiar modo"
               >
                 {theme === 'dark' ? (
-                  <Sun className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-brand-teal-500 transition-all duration-300" />
+                  <Sun className="w-5 h-5 text-yellow-400 group-hover:scale-110 transition-transform" />
                 ) : (
-                  <Moon className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-brand-teal-500 transition-all duration-300" />
+                  <Moon className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
                 )}
               </button>
 
@@ -413,36 +421,22 @@ export default function Header() {
                     handleUserAction()
                   }}
                   disabled={loading}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
-                    loading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  title={getUserButtonText()}
+                  className={`w-12 h-12 flex items-center justify-center rounded-xl bg-accent-600 dark:bg-accent-700 border border-accent-700 dark:border-accent-800 hover:bg-accent-500 dark:hover:bg-accent-600 shadow-sm transition-all ${
+                    isAuthenticated ? 'border-brand-teal-400 dark:border-brand-teal-600 ring-2 ring-accent-500/20' : ''
+                  } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {isAuthenticated ? (
-                    <>
-                      <div className="w-9 h-9 bg-gradient-to-br from-brand-teal-500 to-brand-teal-700 rounded-full flex items-center justify-center shadow-sm">
-                        <span className="text-sm font-semibold text-white">
-                          {getUserInitials()}
-                        </span>
-                      </div>
-                      <div className="text-left hidden xl:block">
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          {userData?.firstName || 'Usuario'}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {isAdmin ? 'Administrador' : 'Mi cuenta'}
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <User className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                        {getUserButtonText()}
+                    <div className="w-9 h-9 bg-gradient-to-br from-brand-teal-400 to-brand-teal-600 rounded-lg flex items-center justify-center shadow-sm">
+                      <span className="text-sm font-semibold text-white">
+                        {getUserInitials()}
                       </span>
-                    </>
+                    </div>
+                  ) : (
+                    <User className="w-5 h-5 text-white" />
                   )}
                   {isAuthenticated && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+                    <div className="absolute top-1 left-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
                   )}
                 </button>
 

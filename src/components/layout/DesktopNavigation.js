@@ -9,6 +9,12 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { CATEGORIAS_PRODUCTOS, CATEGORIAS_SERVICIOS, CATEGORIAS_EMPLEO } from '@/types'
+import { 
+  productIconMap, 
+  serviceIconMap, 
+  employmentIconMap, 
+  categoryColors 
+} from '@/constants/categoryUI'
 import Link from 'next/link'
 
 export default function DesktopNavigation() {
@@ -295,19 +301,22 @@ export default function DesktopNavigation() {
 
           {/* Lista de subcategorías */}
           <div className="p-2 max-h-96 overflow-y-auto">
-            {Object.entries(selectedCategory.subcategorias).map(([key, value]) => (
-              <button
-                key={key}
-                onClick={() => handleSubcategoryClick(value)}
-                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/20 transition-all duration-200 text-left group"
-              >
-                <div className="w-2 h-2 bg-brand-teal-500 rounded-full flex-shrink-0 group-hover:bg-brand-teal-600"></div>
-                <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400 flex-1">
-                  {getSubcategoryName(key)}
-                </span>
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-brand-teal-500" />
-              </button>
-            ))}
+            {Object.entries(selectedCategory.subcategorias).map(([key, value]) => {
+              const categoryColor = categoryColors[selectedCategory.id] || 'from-brand-teal-500 to-brand-teal-600';
+              return (
+                <button
+                  key={key}
+                  onClick={() => handleSubcategoryClick(value)}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 text-left group"
+                >
+                  <div className={`w-2 h-2 bg-gradient-to-br ${categoryColor} rounded-full flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity`}></div>
+                  <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white flex-1">
+                    {getSubcategoryName(key)}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                </button>
+              );
+            })}
           </div>
         </div>
       )
@@ -340,6 +349,15 @@ export default function DesktopNavigation() {
             {item.categories?.map((category) => {
               const hasSubcategories = category.subcategorias && Object.keys(category.subcategorias).length > 0
               const subcategoriesCount = hasSubcategories ? Object.keys(category.subcategorias).length : 0
+              
+              // Obtener icono y color específico
+              const iconMaps = {
+                productos: productIconMap,
+                servicios: serviceIconMap,
+                empleos: employmentIconMap
+              };
+              const SpecificIcon = iconMaps[item.type]?.[category.id] || ItemIcon;
+              const categoryColor = categoryColors[category.id] || 'from-gray-400 to-gray-500';
 
               return (
                 <button
@@ -347,11 +365,11 @@ export default function DesktopNavigation() {
                   onClick={() => handleCategoryClick(category, item.type, item.href)}
                   className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 text-left group"
                 >
-                  <div className="w-8 h-8 bg-brand-teal-100 dark:bg-brand-teal-900/30 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-brand-teal-200 dark:group-hover:bg-brand-teal-800/50">
-                    <ItemIcon className="w-4 h-4 text-brand-teal-600 dark:text-brand-teal-400" />
+                  <div className={`w-10 h-10 bg-gradient-to-br ${categoryColor} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm`}>
+                    <SpecificIcon className="w-5 h-5 text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight group-hover:text-gray-900 dark:group-hover:text-white">
                       {category.nombre}
                     </h4>
                     {hasSubcategories && (
@@ -361,7 +379,7 @@ export default function DesktopNavigation() {
                     )}
                   </div>
                   {hasSubcategories && (
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-brand-teal-500" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
                   )}
                 </button>
               )

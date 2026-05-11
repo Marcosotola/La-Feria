@@ -10,6 +10,13 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { CATEGORIAS_PRODUCTOS, CATEGORIAS_SERVICIOS, CATEGORIAS_EMPLEO } from '@/types'
+import { 
+  productIconMap, 
+  serviceIconMap, 
+  employmentIconMap, 
+  mainCategoryColors,
+  categoryColors 
+} from '@/constants/categoryUI'
 import Link from 'next/link'
 
 export default function MobileNavigation() {
@@ -303,21 +310,24 @@ export default function MobileNavigation() {
     if (showSubcategories && selectedCategory) {
       return (
         <div className="grid grid-cols-1 gap-3">
-          {Object.entries(selectedCategory.subcategorias).map(([key, value]) => (
-            <button
-              key={key}
-              onClick={() => handleSubcategoryClick(value)}
-              className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/20 transition-all duration-200 text-left w-full group cursor-pointer"
-            >
-              <div className="w-3 h-3 bg-brand-teal-500 rounded-full flex-shrink-0 group-hover:bg-brand-teal-600"></div>
-              <div className="min-w-0 flex-1">
-                <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400">
-                  {getSubcategoryName(key)}
-                </h4>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-brand-teal-500" />
-            </button>
-          ))}
+          {Object.entries(selectedCategory.subcategorias).map(([key, value]) => {
+            const categoryColor = categoryColors[selectedCategory.id] || 'from-brand-teal-500 to-brand-teal-600';
+            return (
+              <button
+                key={key}
+                onClick={() => handleSubcategoryClick(value)}
+                className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 text-left w-full group cursor-pointer"
+              >
+                <div className={`w-3 h-3 bg-gradient-to-br ${categoryColor} rounded-full flex-shrink-0`}></div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight group-hover:text-gray-900 dark:group-hover:text-white">
+                    {getSubcategoryName(key)}
+                  </h4>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+              </button>
+            );
+          })}
         </div>
       )
     }
@@ -345,18 +355,27 @@ export default function MobileNavigation() {
           {selectedMainCategory.categories.map((category) => {
             const hasSubcategories = category.subcategorias && Object.keys(category.subcategorias).length > 0
             const subcategoriesCount = hasSubcategories ? Object.keys(category.subcategorias).length : 0
+            
+            // Obtener icono y color específico
+            const iconMaps = {
+              productos: productIconMap,
+              servicios: serviceIconMap,
+              empleos: employmentIconMap
+            };
+            const SpecificIcon = iconMaps[selectedMainCategory.type]?.[category.id] || selectedMainCategory.icon;
+            const categoryColor = categoryColors[category.id] || 'from-gray-400 to-gray-500';
 
             return (
               <button
                 key={category.id}
                 onClick={() => handleCategoryClick(category)}
-                className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/20 transition-all duration-200 text-left w-full group cursor-pointer"
+                className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 text-left w-full group cursor-pointer"
               >
-                <div className="w-10 h-10 bg-brand-teal-100 dark:bg-brand-teal-900/30 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-brand-teal-200 dark:group-hover:bg-brand-teal-800/50">
-                  <selectedMainCategory.icon className="w-5 h-5 text-brand-teal-600 dark:text-brand-teal-400" />
+                <div className={`w-12 h-12 bg-gradient-to-br ${categoryColor} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-sm`}>
+                  <SpecificIcon className="w-6 h-6 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight group-hover:text-gray-900 dark:group-hover:text-white">
                     {category.nombre}
                   </h4>
                   {hasSubcategories && (
@@ -366,7 +385,7 @@ export default function MobileNavigation() {
                   )}
                 </div>
                 {hasSubcategories && (
-                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-brand-teal-500" />
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
                 )}
               </button>
             )
@@ -379,31 +398,37 @@ export default function MobileNavigation() {
       <div className="space-y-4">
         {categoryGroups.map((group) => {
           const IconComponent = group.icon
+          const groupColor = mainCategoryColors[group.type] || 'from-gray-400 to-gray-500';
 
           return (
             <button
               key={group.type}
               onClick={() => handleMainCategoryClick(group)}
-              className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/20 transition-all duration-200 text-left group cursor-pointer"
+              className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 text-left group cursor-pointer border border-transparent hover:border-gray-200 dark:hover:border-gray-600 shadow-sm"
             >
-              <div className="w-12 h-12 bg-brand-teal-100 dark:bg-brand-teal-900/30 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-brand-teal-200 dark:group-hover:bg-brand-teal-800/50">
-                <IconComponent className="w-6 h-6 text-brand-teal-600 dark:text-brand-teal-400" />
+              <div className={`w-14 h-14 bg-gradient-to-br ${groupColor} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-md`}>
+                <IconComponent className="w-7 h-7 text-white" strokeWidth={2.5} />
               </div>
 
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-base mb-1 group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400">
+                <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0.5">
                   {group.title}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                   {group.description}
                 </p>
-                <p className="text-xs text-brand-teal-600 dark:text-brand-teal-400 mt-1">
-                  {group.categories.length} categorías
-                </p>
+                <div className="flex items-center gap-2 mt-1">
+                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full bg-white dark:bg-gray-900 shadow-sm ${
+                     group.type === 'productos' ? 'text-amber-600' : 
+                     group.type === 'servicios' ? 'text-accent-600' : 'text-brand-teal-700'
+                   }`}>
+                    {group.categories.length} categorías
+                  </span>
+                </div>
               </div>
 
               <div className="flex-shrink-0">
-                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-brand-teal-500" />
+                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
               </div>
             </button>
           )

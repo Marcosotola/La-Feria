@@ -259,7 +259,7 @@ export default function FeaturedProducts() {
   return (
     <div className="w-full px-2 sm:px-4 lg:px-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg">
+        <div className="p-2 bg-gradient-to-r from-amber-400 to-amber-500 rounded-lg shadow-sm">
           <Star className="w-6 h-6 text-white fill-current" />
         </div>
         <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
@@ -345,8 +345,8 @@ export default function FeaturedProducts() {
                   key={i}
                   onClick={() => animateToIndex(i)}
                   className={`w-3 h-3 rounded-full transition-all duration-200 ${Math.round(currentIndex) === i
-                    ? 'bg-gradient-to-r from-yellow-500 to-orange-500 scale-125 shadow-md'
-                    : 'bg-gray-300 dark:bg-gray-600 hover:bg-yellow-300 dark:hover:bg-yellow-600'
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 scale-125 shadow-md'
+                    : 'bg-gray-300 dark:bg-gray-600 hover:bg-amber-300 dark:hover:bg-amber-600'
                     }`}
                   disabled={isDragging || isTransitioning}
                 />
