@@ -10,6 +10,8 @@ import {
   Mail,
   Lock
 } from 'lucide-react'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase/config'
 
 export default function Login({ onSwitchToRegister }) {
   const { 
@@ -61,9 +63,17 @@ export default function Login({ onSwitchToRegister }) {
     e.preventDefault()
     setLoading(true)
     try {
-      await confirmationResult.confirm(otp)
-      // La redirección la maneja el AuthContext o el layout
-      window.location.href = '/dashboard'
+      const result = await confirmationResult.confirm(otp)
+      
+      // Verificar si el usuario ya existe en Firestore
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid))
+      
+      if (userDoc.exists()) {
+        window.location.href = '/dashboard'
+      } else {
+        // Es un usuario nuevo que entró por login, mandarlo a completar registro
+        window.location.href = '/register'
+      }
     } catch (err) {
       setError('Código incorrecto')
     } finally {
@@ -191,9 +201,10 @@ export default function Login({ onSwitchToRegister }) {
                 type="text"
                 required
                 maxLength={6}
+                placeholder="* * * * * *"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                className="w-full py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 transition-all font-black text-center text-3xl tracking-[0.5em]"
+                className="w-full py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 transition-all font-black text-center text-3xl tracking-[0.5em] placeholder:text-gray-300 dark:placeholder:text-gray-600"
               />
               <button
                 type="submit"

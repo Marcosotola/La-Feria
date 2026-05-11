@@ -26,12 +26,20 @@ export default function Register({ onSwitchToLogin }) {
     setupRecaptcha, 
     signInWithPhone, 
     user: authUser,
+    userData,
     refreshUserData,
     signInWithGoogle
   } = useAuth()
 
   // Control de Pasos
   const [step, setStep] = useState(1) // 1: Phone, 2: OTP, 3: Role, 4: Data, 5: Permissions
+  
+  // Si el usuario ya está autenticado (vía Login) pero no tiene perfil, saltar al paso 3
+  useEffect(() => {
+    if (authUser && !userData && step < 3) {
+      setStep(3)
+    }
+  }, [authUser, userData, step])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -262,10 +270,11 @@ export default function Register({ onSwitchToLogin }) {
                 <input
                   type="text"
                   required
-                  placeholder="Código de 6 dígitos"
+                  placeholder="* * * * * *"
+                  maxLength={6}
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 transition-all font-black text-center text-2xl tracking-[1em]"
+                  className="w-full pl-4 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 transition-all font-black text-center text-2xl tracking-[1em] placeholder:text-gray-300 dark:placeholder:text-gray-600"
                 />
               </div>
               <button
