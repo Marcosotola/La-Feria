@@ -36,7 +36,7 @@ export default function Register({ onSwitchToLogin }) {
   const [error, setError] = useState(null)
 
   // Datos del Formulario
-  const [phoneNumber, setPhoneNumber] = useState('')
+  const [phoneParts, setPhoneParts] = useState({ area: '', number: '' })
   const [otp, setOtp] = useState('')
   const [confirmationResult, setConfirmationResult] = useState(null)
   const [selectedRole, setSelectedRole] = useState('') // user, puestero, organizer
@@ -56,18 +56,21 @@ export default function Register({ onSwitchToLogin }) {
   // === PASO 1: Enviar SMS ===
   const handleSendOtp = async (e) => {
     e.preventDefault()
-    if (!phoneNumber) return setError('Ingresa un número válido')
+    const fullPhone = `+549${phoneParts.area}${phoneParts.number}`
+    
+    if (phoneParts.area.length < 2 || phoneParts.number.length < 6) {
+      return setError('Número incompleto')
+    }
     
     setLoading(true)
     setError(null)
     try {
       const verifier = setupRecaptcha('recaptcha-container')
-      const result = await signInWithPhone(phoneNumber, verifier)
+      const result = await signInWithPhone(fullPhone, verifier)
       setConfirmationResult(result)
       setStep(2)
     } catch (err) {
       setError('Error al enviar SMS. Verifica el número.')
-      console.error(err)
     } finally {
       setLoading(false)
     }
@@ -188,31 +191,46 @@ export default function Register({ onSwitchToLogin }) {
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-xl font-black text-gray-900 dark:text-white">Validación de Identidad</h3>
-              <p className="text-sm text-gray-500">Ingresa tu número de celular para comenzar.</p>
+              <p className="text-sm text-gray-500">Ingresa tu número para comenzar.</p>
             </div>
             <form onSubmit={handleSendOtp} className="space-y-4">
-              <div className="relative">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="tel"
-                  required
-                  placeholder="+54 9 11 1234 5678"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 transition-all font-bold"
-                />
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-gray-400 px-1 tracking-widest">Número de Celular</label>
+                <div className="relative group">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-brand-teal-500 transition-colors" />
+                  <input
+                    type="tel"
+                    required
+                    placeholder="Cod. Área + Número (Ej: 11 1234 5678)"
+                    value={phoneParts.number}
+                    onChange={(e) => setPhoneParts({ ...phoneParts, number: e.target.value.replace(/\D/g, '') })}
+                    className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-black text-lg"
+                  />
+                </div>
+                <p className="text-[10px] font-black text-gray-900 dark:text-gray-100 px-4 uppercase tracking-tight text-center">
+                  ⚠️ Ingresar <span className="text-primary-600">SIN el 0</span> y <span className="text-primary-600">SIN el 15</span>
+                </p>
               </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 bg-brand-teal-600 hover:bg-brand-teal-700 text-white font-black rounded-2xl shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-2"
-              >
-                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Continuar <ArrowRight className="w-5 h-5" /></>}
-              </button>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-5 bg-brand-teal-600 hover:bg-brand-teal-700 text-white font-black rounded-[2rem] shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-2"
+                >
+                  {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Continuar <ArrowRight className="w-5 h-5" /></>}
+                </button>
+              </div>
             </form>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200 dark:border-gray-800"></div></div>
-              <div className="relative flex justify-center text-sm"><span className="px-2 bg-white dark:bg-gray-900 text-gray-400">Otras opciones</span></div>
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-100 dark:border-gray-800"></div>
+              </div>
+              <div className="relative flex justify-center">
+                <span className="px-4 bg-white dark:bg-gray-900 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                  Otras opciones de registro
+                </span>
+              </div>
             </div>
             <button
               onClick={signInWithGoogle}
