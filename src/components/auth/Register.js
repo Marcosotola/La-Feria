@@ -222,6 +222,12 @@ export default function Register({ onSwitchToLogin }) {
                 >
                   {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Continuar <ArrowRight className="w-5 h-5" /></>}
                 </button>
+                <div className="text-center mt-4">
+                  <p className="text-[10px] text-gray-500 font-medium">
+                    ¿No puedes registrarte con tu número? <br />
+                    <span className="text-brand-teal-600 font-black cursor-pointer hover:underline uppercase tracking-widest">Prueba otras opciones de registro</span>
+                  </p>
+                </div>
               </div>
             </form>
             <div className="relative py-4">
@@ -248,7 +254,7 @@ export default function Register({ onSwitchToLogin }) {
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-xl font-black text-gray-900 dark:text-white">Verifica tu código</h3>
-              <p className="text-sm text-gray-500">Te enviamos un SMS al {phoneNumber}</p>
+              <p className="text-sm text-gray-500">Te enviamos un SMS al {phoneParts.number}</p>
             </div>
             <form onSubmit={handleVerifyOtp} className="space-y-4">
               <div className="relative">
