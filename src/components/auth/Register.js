@@ -56,10 +56,12 @@ export default function Register({ onSwitchToLogin }) {
   // === PASO 1: Enviar SMS ===
   const handleSendOtp = async (e) => {
     e.preventDefault()
-    const fullPhone = `+549${phoneParts.area}${phoneParts.number}`
     
-    if (phoneParts.area.length < 2 || phoneParts.number.length < 6) {
-      return setError('Número incompleto')
+    const cleanNumber = phoneParts.number.trim()
+    const fullPhone = `+549${cleanNumber}`
+    
+    if (cleanNumber.length < 10) {
+      return setError('Número demasiado corto (ingresá Cód. Área + Número)')
     }
     
     setLoading(true)

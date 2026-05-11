@@ -33,10 +33,14 @@ export default function Login({ onSwitchToRegister }) {
   // === TELÉFONO ===
   const handleSendOtp = async (e) => {
     e.preventDefault()
-    const fullPhone = `+549${phoneParts.area}${phoneParts.number}`
     
-    if (phoneParts.area.length < 2 || phoneParts.number.length < 6) {
-      return setError('Número incompleto')
+    // Limpiamos espacios por si las dudas
+    const cleanNumber = phoneParts.number.trim()
+    const fullPhone = `+549${cleanNumber}`
+    
+    // Validación: Un número argentino completo (Cod. Área + Local) suele tener 10 dígitos
+    if (cleanNumber.length < 10) {
+      return setError('Número demasiado corto (ingresá Cód. Área + Número)')
     }
     
     setLoading(true)
