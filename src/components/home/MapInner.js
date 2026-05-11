@@ -15,8 +15,11 @@ export default function MapInner({ onSelect, fairs = [] }) {
 
   // Córdoba, Argentina por defecto
   const defaultCenter = [-31.417, -64.183]
-  const center = fairs.length > 0 && fairs[0].location 
-    ? [fairs[0].location.lat, fairs[0].location.lng] 
+  
+  // Encontrar la primera feria con coordenadas válidas para centrar
+  const firstFairWithCoords = fairs.find(f => f.location && typeof f.location === 'object' && f.location.lat)
+  const center = firstFairWithCoords 
+    ? [firstFairWithCoords.location.lat, firstFairWithCoords.location.lng] 
     : defaultCenter
 
   return (
@@ -32,16 +35,21 @@ export default function MapInner({ onSelect, fairs = [] }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       
-      {fairs.map((fair) => (
-        <Marker 
-          key={fair.id} 
-          position={[fair.location.lat, fair.location.lng]} 
-          icon={customIcon}
-          eventHandlers={{
-            click: () => onSelect(fair)
-          }}
-        />
-      ))}
+      {fairs.map((fair) => {
+        // Solo renderizar si tiene coordenadas válidas
+        if (!fair.location || typeof fair.location !== 'object' || !fair.location.lat) return null;
+        
+        return (
+          <Marker 
+            key={fair.id} 
+            position={[fair.location.lat, fair.location.lng]} 
+            icon={customIcon}
+            eventHandlers={{
+              click: () => onSelect(fair)
+            }}
+          />
+        )
+      })}
     </MapContainer>
   )
 }

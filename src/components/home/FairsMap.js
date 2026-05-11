@@ -91,7 +91,11 @@ export default function FairsMap() {
               <div className="space-y-2 mb-6">
                 <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-xs">
                   <MapPin className="w-4 h-4 text-primary-500" />
-                  <span className="truncate">{selectedFair.location}</span>
+                  <span className="truncate">
+                    {typeof selectedFair.location === 'object' 
+                      ? selectedFair.location.address 
+                      : (selectedFair.location || 'Ubicación pendiente')}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-xs">
                   <Calendar className="w-4 h-4 text-brand-teal-500" />
