@@ -307,15 +307,15 @@ export default function MobileNavigation() {
             <button
               key={key}
               onClick={() => handleSubcategoryClick(value)}
-              className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200 text-left w-full group cursor-pointer"
+              className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/20 transition-all duration-200 text-left w-full group cursor-pointer"
             >
-              <div className="w-3 h-3 bg-primary-500 rounded-full flex-shrink-0 group-hover:bg-primary-600"></div>
+              <div className="w-3 h-3 bg-brand-teal-500 rounded-full flex-shrink-0 group-hover:bg-brand-teal-600"></div>
               <div className="min-w-0 flex-1">
-                <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight group-hover:text-primary-700 dark:group-hover:text-primary-400">
+                <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400">
                   {getSubcategoryName(key)}
                 </h4>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary-500" />
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-brand-teal-500" />
             </button>
           ))}
         </div>
@@ -327,16 +327,16 @@ export default function MobileNavigation() {
         <div className="grid grid-cols-1 gap-3">
           <button
             onClick={() => handleViewAll(selectedMainCategory.href)}
-            className="flex items-center gap-3 p-4 rounded-xl bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-200 dark:border-primary-800 hover:bg-primary-100 dark:hover:bg-primary-800/30 transition-all duration-200 text-left w-full group mb-4 cursor-pointer"
+            className="flex items-center gap-3 p-4 rounded-xl bg-brand-teal-500/10 dark:bg-brand-teal-400/10 border-2 border-brand-teal-200 dark:border-brand-teal-800 hover:bg-brand-teal-100 dark:hover:bg-brand-teal-800/30 transition-all duration-200 text-left w-full group mb-4 cursor-pointer"
           >
-            <div className="w-12 h-12 bg-primary-500 rounded-xl flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 bg-brand-teal-500 rounded-xl flex items-center justify-center flex-shrink-0">
               <selectedMainCategory.icon className="w-6 h-6 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="font-semibold text-primary-700 dark:text-primary-300 text-base leading-tight">
+              <h4 className="font-semibold text-brand-teal-700 dark:text-brand-teal-300 text-base leading-tight">
                 Ver todos los {selectedMainCategory.title}
               </h4>
-              <p className="text-xs text-primary-600 dark:text-primary-400 mt-1">
+              <p className="text-xs text-brand-teal-600 dark:text-brand-teal-400 mt-1">
                 Explorar todas las categorías
               </p>
             </div>
@@ -350,13 +350,13 @@ export default function MobileNavigation() {
               <button
                 key={category.id}
                 onClick={() => handleCategoryClick(category)}
-                className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200 text-left w-full group cursor-pointer"
+                className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/20 transition-all duration-200 text-left w-full group cursor-pointer"
               >
-                <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-primary-200 dark:group-hover:bg-primary-800/50">
-                  <selectedMainCategory.icon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                <div className="w-10 h-10 bg-brand-teal-100 dark:bg-brand-teal-900/30 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-brand-teal-200 dark:group-hover:bg-brand-teal-800/50">
+                  <selectedMainCategory.icon className="w-5 h-5 text-brand-teal-600 dark:text-brand-teal-400" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight group-hover:text-primary-700 dark:group-hover:text-primary-400">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400">
                     {category.nombre}
                   </h4>
                   {hasSubcategories && (
@@ -366,7 +366,7 @@ export default function MobileNavigation() {
                   )}
                 </div>
                 {hasSubcategories && (
-                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary-500" />
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-brand-teal-500" />
                 )}
               </button>
             )
@@ -384,26 +384,26 @@ export default function MobileNavigation() {
             <button
               key={group.type}
               onClick={() => handleMainCategoryClick(group)}
-              className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200 text-left group cursor-pointer"
+              className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/20 transition-all duration-200 text-left group cursor-pointer"
             >
-              <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary-200 dark:group-hover:bg-primary-800/50">
-                <IconComponent className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+              <div className="w-12 h-12 bg-brand-teal-100 dark:bg-brand-teal-900/30 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-brand-teal-200 dark:group-hover:bg-brand-teal-800/50">
+                <IconComponent className="w-6 h-6 text-brand-teal-600 dark:text-brand-teal-400" />
               </div>
 
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-base mb-1 group-hover:text-primary-700 dark:group-hover:text-primary-400">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-base mb-1 group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400">
                   {group.title}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                   {group.description}
                 </p>
-                <p className="text-xs text-primary-600 dark:text-primary-400 mt-1">
+                <p className="text-xs text-brand-teal-600 dark:text-brand-teal-400 mt-1">
                   {group.categories.length} categorías
                 </p>
               </div>
 
               <div className="flex-shrink-0">
-                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary-500" />
+                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-brand-teal-500" />
               </div>
             </button>
           )
@@ -416,7 +416,7 @@ export default function MobileNavigation() {
     return (
       <div className="space-y-4">
         {/* Header del usuario */}
-        <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-4 shadow-lg">
+        <div className="bg-gradient-to-r from-brand-teal-600 to-brand-teal-800 rounded-2xl p-4 shadow-lg">
           <div className="flex items-center gap-3">
             <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-xl font-bold text-white">
@@ -454,20 +454,20 @@ export default function MobileNavigation() {
                   <button
                     key={item.id}
                     onClick={() => handleUserMenuNavigation(item.href)}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200 text-left group cursor-pointer"
+                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/20 transition-all duration-200 text-left group cursor-pointer"
                   >
-                    <div className="w-10 h-10 bg-white dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/40 transition-colors">
-                      <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400" />
+                    <div className="w-10 h-10 bg-white dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-brand-teal-100 dark:group-hover:bg-brand-teal-900/40 transition-colors">
+                      <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-medium text-gray-900 dark:text-white text-sm leading-tight group-hover:text-primary-700 dark:group-hover:text-primary-400">
+                      <h4 className="font-medium text-gray-900 dark:text-white text-sm leading-tight group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400">
                         {item.label}
                       </h4>
                       <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                         {item.description}
                       </p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary-500 flex-shrink-0" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-brand-teal-500 flex-shrink-0" />
                   </button>
                 )
               })}
@@ -515,7 +515,7 @@ export default function MobileNavigation() {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg">
         {/* Indicador de pestaña activa */}
         {activeTab !== 'categories' && activeTab !== 'user' && (
-          <div className="absolute top-0 left-0 h-0.5 bg-primary-500 transition-all duration-300 ease-out"
+          <div className="absolute top-0 left-0 h-0.5 bg-brand-teal-500 transition-all duration-300 ease-out"
             style={{
               width: `${100 / navItems.length}%`,
               transform: `translateX(${navItems.findIndex(item => item.id === activeTab) * 100}%)`,
@@ -536,14 +536,14 @@ export default function MobileNavigation() {
                   relative flex flex-col items-center justify-center py-2 rounded-xl min-w-0 flex-1
                   transition-all duration-200 ease-out cursor-pointer
                   ${isActive
-                    ? 'text-primary-600 dark:text-primary-400'
+                    ? 'text-brand-teal-500 dark:text-brand-teal-400'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                   }
                 `}
                 aria-label={item.label}
               >
                 {isActive && (
-                  <div className="absolute inset-0 rounded-xl bg-primary-50 dark:bg-primary-900/20 transition-all duration-200" />
+                  <div className="absolute inset-0 rounded-xl bg-brand-teal-500/10 dark:bg-brand-teal-400/10 transition-all duration-200" />
                 )}
 
                 <div className="relative mb-1 z-10">

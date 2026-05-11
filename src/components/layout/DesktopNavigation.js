@@ -299,13 +299,13 @@ export default function DesktopNavigation() {
               <button
                 key={key}
                 onClick={() => handleSubcategoryClick(value)}
-                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200 text-left group"
+                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/20 transition-all duration-200 text-left group"
               >
-                <div className="w-2 h-2 bg-primary-500 rounded-full flex-shrink-0 group-hover:bg-primary-600"></div>
-                <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-primary-700 dark:group-hover:text-primary-400 flex-1">
+                <div className="w-2 h-2 bg-brand-teal-500 rounded-full flex-shrink-0 group-hover:bg-brand-teal-600"></div>
+                <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400 flex-1">
                   {getSubcategoryName(key)}
                 </span>
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary-500" />
+                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-brand-teal-500" />
               </button>
             ))}
           </div>
@@ -347,11 +347,11 @@ export default function DesktopNavigation() {
                   onClick={() => handleCategoryClick(category, item.type, item.href)}
                   className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 text-left group"
                 >
-                  <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-primary-200 dark:group-hover:bg-primary-800/50">
-                    <ItemIcon className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                  <div className="w-8 h-8 bg-brand-teal-100 dark:bg-brand-teal-900/30 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-brand-teal-200 dark:group-hover:bg-brand-teal-800/50">
+                    <ItemIcon className="w-4 h-4 text-brand-teal-600 dark:text-brand-teal-400" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight group-hover:text-primary-700 dark:group-hover:text-primary-400">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400">
                       {category.nombre}
                     </h4>
                     {hasSubcategories && (
@@ -361,7 +361,7 @@ export default function DesktopNavigation() {
                     )}
                   </div>
                   {hasSubcategories && (
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary-500" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-brand-teal-500" />
                   )}
                 </button>
               )
@@ -376,7 +376,7 @@ export default function DesktopNavigation() {
     return (
       <div className="w-80 p-3">
         {/* Header del usuario */}
-        <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl p-3 shadow-lg mb-3">
+        <div className="bg-gradient-to-r from-brand-teal-600 to-brand-teal-800 rounded-xl p-3 shadow-lg mb-3">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-lg font-bold text-white">
@@ -417,18 +417,18 @@ export default function DesktopNavigation() {
                       onClick={() => handleUserMenuNavigation(item.href)}
                       className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 text-left group"
                     >
-                      <div className="w-8 h-8 bg-white dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/40 transition-colors">
-                        <Icon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400" />
+                      <div className="w-8 h-8 bg-white dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-brand-teal-50 dark:group-hover:bg-brand-teal-900/40 transition-colors">
+                        <Icon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h4 className="font-medium text-gray-900 dark:text-white text-sm leading-tight group-hover:text-primary-700 dark:group-hover:text-primary-400">
+                        <h4 className="font-medium text-gray-900 dark:text-white text-sm leading-tight group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400">
                           {item.label}
                         </h4>
                         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                           {item.description}
                         </p>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary-500 flex-shrink-0" />
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-brand-teal-500 flex-shrink-0" />
                     </button>
                   )
                 })}
@@ -475,8 +475,8 @@ export default function DesktopNavigation() {
                     className={`
                       flex items-center gap-2 py-4 px-4 text-sm font-medium transition-all duration-200 relative cursor-pointer
                       ${isActive 
-                        ? 'text-primary-600 dark:text-primary-400' 
-                        : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
+                        ? 'text-brand-teal-500 dark:text-brand-teal-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:text-brand-teal-500 dark:hover:text-brand-teal-400'
                       }
                     `}
                   >
@@ -488,7 +488,7 @@ export default function DesktopNavigation() {
                     
                     {/* Indicador de activo */}
                     {isActive && (
-                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-teal-500 dark:bg-brand-teal-400" />
                     )}
                   </button>
 
@@ -512,8 +512,8 @@ export default function DesktopNavigation() {
                   className={`
                     flex items-center gap-2 py-4 px-4 text-sm font-medium transition-all duration-200 relative cursor-pointer
                     ${activeDropdown === 'user'
-                      ? 'text-primary-600 dark:text-primary-400' 
-                      : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
+                      ? 'text-brand-teal-500 dark:text-brand-teal-400'
+                      : 'text-gray-700 dark:text-gray-300 hover:text-brand-teal-500 dark:hover:text-brand-teal-400'
                     }
                   `}
                 >
@@ -523,7 +523,7 @@ export default function DesktopNavigation() {
                   
                   {/* Indicador de activo */}
                   {activeDropdown === 'user' && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-teal-500 dark:bg-brand-teal-400" />
                   )}
                 </button>
 

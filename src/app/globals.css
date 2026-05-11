@@ -5,22 +5,39 @@
 /* ========== CONFIGURACIÓN TAILWIND V4 ========== */
 @theme {
   /* Colores personalizados para La Feria */
-  /* Colores de marca La Feria */
+  /* ── Naranja del pin (color de acción principal) ── */
+  --color-primary-50:  #fff2ee;
+  --color-primary-100: #ffe1d4;
+  --color-primary-200: #ffc4ae;
+  --color-primary-300: #ff9e7a;
+  --color-primary-400: #f07555;
+  --color-primary-500: #E8613C;
+  --color-primary-600: #d44a27;
+  --color-primary-700: #b03a1d;
+  --color-primary-800: #8f2f18;
+  --color-primary-900: #742815;
+  --color-primary-950: #3d130a;
+
+  /* ── Teal oscuro del puesto (interacciones secundarias, nav activa) ── */
+  --color-brand-teal-50:  #f0f7fa;
+  --color-brand-teal-100: #daedf5;
+  --color-brand-teal-200: #b5d9e9;
+  --color-brand-teal-300: #7fbcd6;
   --color-brand-teal-400: #2a7d9c;
   --color-brand-teal-500: #1B607A;
   --color-brand-teal-600: #164f66;
+  --color-brand-teal-700: #123e51;
+  --color-brand-teal-800: #0f3244;
+  --color-brand-teal-900: #0c2838;
 
-  --color-primary-50: #fff7ed;
-  --color-primary-100: #ffedd5;
-  --color-primary-200: #fed7aa;
-  --color-primary-300: #fdba74;
-  --color-primary-400: #fb923c;
-  --color-primary-500: #ff6b35;
-  --color-primary-600: #ea580c;
-  --color-primary-700: #c2410c;
-  --color-primary-800: #9a3412;
-  --color-primary-900: #7c2d12;
-  --color-primary-950: #431407;
+  /* ── Teal medio del toldo (badges, chips, detalles) ── */
+  --color-accent-50:  #f0faf9;
+  --color-accent-100: #d5f0ed;
+  --color-accent-200: #aeddd9;
+  --color-accent-300: #78c4be;
+  --color-accent-400: #4EAAA0;
+  --color-accent-500: #3a8d84;
+  --color-accent-600: #2d716a;
   
   --color-secondary-50: #f8fafc;
   --color-secondary-100: #f1f5f9;

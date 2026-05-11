@@ -188,9 +188,9 @@ export default function Header() {
               aria-label="Cambiar modo"
             >
               {theme === 'dark' ? (
-                <Sun className="w-5 h-5 text-gray-600 dark:text-gray-400 transition-all duration-300 hover:text-primary-500" />
+                <Sun className="w-5 h-5 text-gray-600 dark:text-gray-400 transition-all duration-300 hover:text-brand-teal-500" />
               ) : (
-                <Moon className="w-5 h-5 text-gray-600 dark:text-gray-400 transition-all duration-300 hover:text-primary-500" />
+                <Moon className="w-5 h-5 text-gray-600 dark:text-gray-400 transition-all duration-300 hover:text-brand-teal-500" />
               )}
             </button>
 
@@ -219,12 +219,12 @@ export default function Header() {
                 }}
                 disabled={loading}
                 className={`p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative ${
-                  isAuthenticated ? 'bg-primary-50 dark:bg-primary-900/20' : ''
+                  isAuthenticated ? 'bg-brand-teal-500/10 dark:bg-brand-teal-400/10' : ''
                 } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 aria-label={getUserButtonText()}
               >
                 {isAuthenticated ? (
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-brand-teal-500 to-brand-teal-700 rounded-full flex items-center justify-center">
                     <span className="text-xs font-bold text-white">
                       {getUserInitials()}
                     </span>
@@ -241,7 +241,7 @@ export default function Header() {
               {isAuthenticated && showUserMenu && (
                 <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
                   {/* Header del menú */}
-                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-4">
+                  <div className="bg-gradient-to-r from-brand-teal-600 to-brand-teal-800 p-4">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
                         <span className="text-lg font-bold text-white">
@@ -292,8 +292,8 @@ export default function Header() {
                               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group active:bg-gray-100 dark:active:bg-gray-600"
                               style={{ WebkitTapHighlightColor: 'transparent' }}
                             >
-                              <div className="w-9 h-9 bg-primary-50 dark:bg-primary-900/20 rounded-lg flex items-center justify-center group-hover:bg-primary-100 dark:group-hover:bg-primary-900/40 transition-colors pointer-events-none">
-                                <Icon className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                              <div className="w-9 h-9 bg-brand-teal-50 dark:bg-brand-teal-900/20 rounded-lg flex items-center justify-center group-hover:bg-brand-teal-100 dark:group-hover:bg-brand-teal-900/40 transition-colors pointer-events-none">
+                                <Icon className="w-4 h-4 text-brand-teal-600 dark:text-brand-teal-400" />
                               </div>
                               <div className="flex-1 min-w-0 text-left pointer-events-none">
                                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
@@ -399,9 +399,9 @@ export default function Header() {
                 aria-label="Cambiar modo"
               >
                 {theme === 'dark' ? (
-                  <Sun className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-primary-500 transition-all duration-300" />
+                  <Sun className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-brand-teal-500 transition-all duration-300" />
                 ) : (
-                  <Moon className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-primary-500 transition-all duration-300" />
+                  <Moon className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-brand-teal-500 transition-all duration-300" />
                 )}
               </button>
 
@@ -419,7 +419,7 @@ export default function Header() {
                 >
                   {isAuthenticated ? (
                     <>
-                      <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-sm">
+                      <div className="w-9 h-9 bg-gradient-to-br from-brand-teal-500 to-brand-teal-700 rounded-full flex items-center justify-center shadow-sm">
                         <span className="text-sm font-semibold text-white">
                           {getUserInitials()}
                         </span>
@@ -450,7 +450,7 @@ export default function Header() {
                 {isAuthenticated && showUserMenu && (
                   <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
                     {/* Header del menú */}
-                    <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-4">
+                    <div className="bg-gradient-to-r from-brand-teal-600 to-brand-teal-800 p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
                           <span className="text-lg font-bold text-white">
@@ -495,8 +495,8 @@ export default function Header() {
                                 }}
                                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
                               >
-                                <div className="w-9 h-9 bg-primary-50 dark:bg-primary-900/20 rounded-lg flex items-center justify-center group-hover:bg-primary-100 dark:group-hover:bg-primary-900/40 transition-colors pointer-events-none">
-                                  <Icon className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                                <div className="w-9 h-9 bg-brand-teal-50 dark:bg-brand-teal-900/20 rounded-lg flex items-center justify-center group-hover:bg-brand-teal-100 dark:group-hover:bg-brand-teal-900/40 transition-colors pointer-events-none">
+                                  <Icon className="w-4 h-4 text-brand-teal-600 dark:text-brand-teal-400" />
                                 </div>
                                 <div className="flex-1 min-w-0 text-left pointer-events-none">
                                   <p className="text-sm font-medium text-gray-900 dark:text-white">
