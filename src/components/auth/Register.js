@@ -18,40 +18,40 @@ import {
   Home,
   Building2,
   AlertCircle,
-  Upload
+  Upload,
+  Camera
 } from 'lucide-react'
+import { 
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  createUserWithEmailAndPassword,
+  sendEmailVerification
+} from 'firebase/auth'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { db, storage } from '@/lib/firebase/config'
+import { auth, db, storage } from '@/lib/firebase/config'
+import Toast from '@/components/ui/Toast'
 
 export default function Register({ onSwitchToLogin }) {
   const { 
     setupRecaptcha, 
     signInWithPhone, 
-    user: authUser,
-    userData,
-    refreshUserData,
-    signInWithGoogle
+    verifyOtp,
+    signInWithGoogle,
+    registerWithEmail,
+    refreshUserData
   } = useAuth()
 
-  // Control de Pasos
-  const [step, setStep] = useState(1) // 1: Phone, 2: OTP, 3: Role, 4: Data, 5: Permissions
-  
-  // Si el usuario ya está autenticado (vía Login) pero no tiene perfil, saltar al paso 3
-  useEffect(() => {
-    if (authUser && !userData && step < 3) {
-      setStep(3)
-    }
-  }, [authUser, userData, step])
+  const [step, setStep] = useState(1) 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-
-  // Datos del Formulario
-  const [phoneParts, setPhoneParts] = useState({ area: '', number: '' })
   const [otp, setOtp] = useState('')
   const [confirmationResult, setConfirmationResult] = useState(null)
-  const [selectedRole, setSelectedRole] = useState('') // user, puestero, organizer
-
+  
+  // Datos del perfil
+  const [authUser, setAuthUser] = useState(null)
+  const [selectedRole, setSelectedRole] = useState(null)
+  const [phoneParts, setPhoneParts] = useState({ area: '', number: '' })
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
@@ -63,6 +63,10 @@ export default function Register({ onSwitchToLogin }) {
   const [dniFiles, setDniFiles] = useState({ front: null, back: null })
   const [dniPreviews, setDniPreviews] = useState({ front: null, back: null })
 
+  const [regMethod, setRegMethod] = useState('phone') // 'phone' | 'email'
+  const [emailData, setEmailData] = useState({ email: '', password: '', confirmPassword: '' })
+  const [showToast, setShowToast] = useState(false)
+
   const [permissions, setPermissions] = useState({
     notifications: false,
     location: false
@@ -71,23 +75,18 @@ export default function Register({ onSwitchToLogin }) {
   // === PASO 1: Enviar SMS ===
   const handleSendOtp = async (e) => {
     e.preventDefault()
-    
-    const cleanNumber = phoneParts.number.trim()
-    const fullPhone = `+549${cleanNumber}`
-    
-    if (cleanNumber.length < 10) {
-      return setError('Número demasiado corto (ingresá Cód. Área + Número)')
-    }
-    
     setLoading(true)
     setError(null)
+    setShowToast(false)
     try {
-      const verifier = setupRecaptcha('recaptcha-container')
+      const verifier = setupRecaptcha('recaptcha-container-register')
+      const fullPhone = `+549${phoneParts.number}`
       const result = await signInWithPhone(fullPhone, verifier)
       setConfirmationResult(result)
       setStep(2)
     } catch (err) {
       setError('Error al enviar SMS. Verifica el número.')
+      setShowToast(true)
     } finally {
       setLoading(false)
     }
@@ -96,24 +95,64 @@ export default function Register({ onSwitchToLogin }) {
   // === PASO 2: Verificar OTP ===
   const handleVerifyOtp = async (e) => {
     e.preventDefault()
-    if (!otp) return setError('Ingresa el código de 6 dígitos')
-
     setLoading(true)
     setError(null)
+    setShowToast(false)
     try {
       const result = await confirmationResult.confirm(otp)
-      // Verificar si el usuario ya existe en Firestore
-      const userDoc = await getDoc(doc(db, 'users', result.user.uid))
+      setAuthUser(result.user)
       
-      if (userDoc.exists()) {
-        // Ya existe, login directo
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid))
+      if (userDoc.exists() && userDoc.data().profileCompleted) {
         window.location.href = '/dashboard'
       } else {
-        // Nuevo usuario, elegir rol
         setStep(3)
       }
     } catch (err) {
-      setError('Código incorrecto. Reintenta.')
+      setError('Código incorrecto')
+      setShowToast(true)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // === EMAIL REGISTER ===
+  const handleEmailRegister = async (e) => {
+    e.preventDefault()
+    
+    if (emailData.password !== emailData.confirmPassword) {
+      setError('Las contraseñas no coinciden')
+      setShowToast(true)
+      return
+    }
+
+    if (emailData.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres')
+      setShowToast(true)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    setShowToast(false)
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        emailData.email, 
+        emailData.password
+      )
+      
+      await sendEmailVerification(userCredential.user)
+      
+      setAuthUser(userCredential.user)
+      setStep(3)
+    } catch (err) {
+      console.error("Error en registro por email:", err)
+      let msg = 'Error en el registro'
+      if (err.code === 'auth/email-already-in-use') msg = 'El email ya está registrado'
+      if (err.code === 'auth/invalid-email') msg = 'Email inválido'
+      setError(msg)
+      setShowToast(true)
     } finally {
       setLoading(false)
     }
@@ -134,19 +173,16 @@ export default function Register({ onSwitchToLogin }) {
     try {
       let dniUrls = { front: '', back: '' }
 
-      // Si es organizador, subir DNIs
       if (selectedRole === 'organizer') {
         if (!dniFiles.front || !dniFiles.back) {
           throw new Error('Debes subir ambas fotos del DNI')
         }
 
-        // Subir Frente
-        const frontRef = ref(storage, `dni/${authUser.uid}/front_${Date.now()}`)
+        const frontRef = ref(storage, `users/${authUser.uid}/dni_front_${Date.now()}`)
         const frontSnapshot = await uploadBytes(frontRef, dniFiles.front)
         dniUrls.front = await getDownloadURL(frontSnapshot.ref)
 
-        // Subir Dorso
-        const backRef = ref(storage, `dni/${authUser.uid}/back_${Date.now()}`)
+        const backRef = ref(storage, `users/${authUser.uid}/dni_back_${Date.now()}`)
         const backSnapshot = await uploadBytes(backRef, dniFiles.back)
         dniUrls.back = await getDownloadURL(backSnapshot.ref)
       }
@@ -155,7 +191,8 @@ export default function Register({ onSwitchToLogin }) {
         ...profileData,
         role: selectedRole,
         uid: authUser.uid,
-        phoneNumber: authUser.phoneNumber,
+        phoneNumber: authUser.phoneNumber || '',
+        email: profileData.email || authUser.email || '',
         createdAt: new Date().toISOString(),
         profileCompleted: true,
         dniPhotos: selectedRole === 'organizer' ? dniUrls : null
@@ -165,6 +202,7 @@ export default function Register({ onSwitchToLogin }) {
       setStep(5)
     } catch (err) {
       setError(err.message || 'Error al guardar el perfil')
+      setShowToast(true)
     } finally {
       setLoading(false)
     }
@@ -179,10 +217,9 @@ export default function Register({ onSwitchToLogin }) {
   }
 
   // === PASO 5: Permisos y Guardar ===
-  const handleFinalSubmit = async () => {
+  const handleCompleteRegistration = async () => {
     setLoading(true)
     try {
-      // 1. Guardar en Firestore
       const updateData = {
         permissions,
         updatedAt: new Date(),
@@ -192,351 +229,420 @@ export default function Register({ onSwitchToLogin }) {
       await setDoc(doc(db, 'users', authUser.uid), updateData, { merge: true })
       await refreshUserData()
       
-      // 2. Redirigir según rol
-      if (selectedRole === 'organizer') window.location.href = '/dashboard/organizer'
-      else window.location.href = '/dashboard'
-      
+      if (selectedRole === 'organizer') {
+        window.location.href = '/dashboard/organizer'
+      } else {
+        window.location.href = '/dashboard'
+      }
     } catch (err) {
-      setError('Error al crear perfil. Intenta de nuevo.')
+      setError('Error al finalizar el registro')
+      setShowToast(true)
     } finally {
       setLoading(false)
     }
   }
 
-  // Pedir Permisos
-  const requestLocation = () => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(() => {
-        setPermissions(prev => ({ ...prev, location: true }))
-      })
-    }
+  const requestNotifications = () => {
+    setPermissions(prev => ({ ...prev, notifications: !prev.notifications }))
   }
 
-  const requestNotifications = async () => {
-    const permission = await Notification.requestPermission()
-    if (permission === 'granted') {
-      setPermissions(prev => ({ ...prev, notifications: true }))
-    }
+  const requestLocation = () => {
+    setPermissions(prev => ({ ...prev, location: !prev.location }))
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full mx-auto space-y-8 bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-gray-800 relative overflow-hidden">
-        
-        {/* Decoración de fondo */}
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-32 h-32 bg-brand-teal-500/10 rounded-full blur-3xl"></div>
-
-        <div className="text-center relative z-10">
-          <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">
-            <span className="text-brand-teal-600">La</span> Feria
-          </h2>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 font-medium">
-            Paso {step} de 5
-          </p>
-        </div>
-
-        {error && (
-          <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-red-600 dark:text-red-400 text-sm font-bold flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" /> {error}
-          </div>
-        )}
-
-        {/* CONTENEDOR RECAPTCHA INVISIBLE */}
-        <div id="recaptcha-container"></div>
-
-        {/* PASO 1: TELÉFONO */}
-        {step === 1 && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-xl font-black text-gray-900 dark:text-white">Validación de Identidad</h3>
-              <p className="text-sm text-gray-500">Ingresa tu número para comenzar.</p>
-            </div>
-            <form onSubmit={handleSendOtp} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-gray-400 px-1 tracking-widest">Número de Celular</label>
-                <div className="relative group">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-brand-teal-500 transition-colors" />
-                  <input
-                    type="tel"
-                    required
-                    placeholder="Cod. Área + Número (Ej: 11 1234 5678)"
-                    value={phoneParts.number}
-                    onChange={(e) => setPhoneParts({ ...phoneParts, number: e.target.value.replace(/\D/g, '') })}
-                    className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-black text-lg"
-                  />
-                </div>
-                <p className="text-[10px] font-black text-gray-900 dark:text-gray-100 px-4 uppercase tracking-tight text-center">
-                  ⚠️ Ingresar <span className="text-primary-600">SIN el 0</span> y <span className="text-primary-600">SIN el 15</span>
-                </p>
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-5 bg-brand-teal-600 hover:bg-brand-teal-700 text-white font-black rounded-[2rem] shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-2"
-                >
-                  {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Continuar <ArrowRight className="w-5 h-5" /></>}
-                </button>
-                <div className="text-center mt-4">
-                  <p className="text-[10px] text-gray-500 font-medium">
-                    ¿No puedes registrarte con tu número? <br />
-                    <span className="text-brand-teal-600 font-black cursor-pointer hover:underline uppercase tracking-widest">Prueba otras opciones de registro</span>
-                  </p>
-                </div>
-              </div>
-            </form>
-            <div className="relative py-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-100 dark:border-gray-800"></div>
-              </div>
-              <div className="relative flex justify-center">
-                <span className="px-4 bg-white dark:bg-gray-900 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-                  Otras opciones de registro
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={signInWithGoogle}
-              className="w-full py-4 border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
-            >
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" /> Google
-            </button>
-          </div>
-        )}
-
-        {/* PASO 2: OTP */}
-        {step === 2 && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-xl font-black text-gray-900 dark:text-white">Verifica tu código</h3>
-              <p className="text-sm text-gray-500">Te enviamos un SMS al {phoneParts.number}</p>
-            </div>
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <div className="relative">
-                <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  required
-                  placeholder="* * * * * *"
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="w-full pl-4 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 transition-all font-black text-center text-2xl tracking-[1em] placeholder:text-gray-300 dark:placeholder:text-gray-600"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-black rounded-2xl shadow-xl shadow-primary-600/30 transition-all flex items-center justify-center gap-2"
-              >
-                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Validar Código <ArrowRight className="w-5 h-5" /></>}
-              </button>
-              <button 
-                type="button" 
-                onClick={() => setStep(1)}
-                className="w-full text-center text-sm text-gray-400 font-bold hover:text-gray-600"
-              >
-                ¿No llegó? Cambiar número
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* PASO 3: SELECCIÓN DE ROL */}
-        {step === 3 && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-xl font-black text-gray-900 dark:text-white">¿Quién eres en La Feria?</h3>
-              <p className="text-sm text-gray-500">Esto nos ayuda a personalizar tu experiencia.</p>
-            </div>
-            <div className="space-y-4">
-              <button
-                onClick={() => handleRoleSelect('user')}
-                className="w-full p-6 border-2 border-gray-100 dark:border-gray-800 rounded-3xl hover:border-brand-teal-500 hover:bg-brand-teal-50/50 dark:hover:bg-brand-teal-900/10 transition-all text-left flex items-center gap-4 group"
-              >
-                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center group-hover:bg-brand-teal-100 dark:group-hover:bg-brand-teal-900/30 transition-colors">
-                  <User className="w-6 h-6 text-gray-500 group-hover:text-brand-teal-600" />
-                </div>
-                <div>
-                  <h4 className="font-black text-gray-900 dark:text-white">Usuario Común</h4>
-                  <p className="text-xs text-gray-500">Quiero ver y comprar en ferias.</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleRoleSelect('puestero')}
-                className="w-full p-6 border-2 border-gray-100 dark:border-gray-800 rounded-3xl hover:border-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-900/10 transition-all text-left flex items-center gap-4 group"
-              >
-                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
-                  <Store className="w-6 h-6 text-gray-500 group-hover:text-primary-600" />
-                </div>
-                <div>
-                  <h4 className="font-black text-gray-900 dark:text-white">Puestero (Feriante)</h4>
-                  <p className="text-xs text-gray-500">Tengo un puesto y quiero vender.</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleRoleSelect('organizer')}
-                className="w-full p-6 border-2 border-gray-100 dark:border-gray-800 rounded-3xl hover:border-accent-500 hover:bg-accent-50/50 dark:hover:bg-accent-900/10 transition-all text-left flex items-center gap-4 group"
-              >
-                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center group-hover:bg-accent-100 dark:group-hover:bg-accent-900/30 transition-colors">
-                  <ShieldCheck className="w-6 h-6 text-gray-500 group-hover:text-accent-600" />
-                </div>
-                <div>
-                  <h4 className="font-black text-gray-900 dark:text-white">Organizador</h4>
-                  <p className="text-xs text-gray-500">Gestiono una o más ferias.</p>
-                </div>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* PASO 4: DATOS DEL PERFIL */}
-        {step === 4 && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-xl font-black text-gray-900 dark:text-white">Completa tus datos</h3>
-              <p className="text-sm text-gray-500">Casi terminamos, necesitamos conocerte mejor.</p>
-            </div>
-            <form onSubmit={handleProfileSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  required
-                  placeholder="Nombre"
-                  value={profileData.firstName}
-                  onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
-                  className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 font-bold"
-                />
-                <input
-                  required
-                  placeholder="Apellido"
-                  value={profileData.lastName}
-                  onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
-                  className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 font-bold"
-                />
-              </div>
-              <input
-                required
-                type="email"
-                placeholder="Email de contacto"
-                value={profileData.email}
-                onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 font-bold"
-              />
-              
-              {selectedRole === 'organizer' && (
-                <div className="pt-2 space-y-4 animate-in fade-in slide-in-from-top-2">
-                  <label className="text-[10px] font-black uppercase text-gray-400 px-2">Identidad (Obligatorio para Organizadores)</label>
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* DNI FRENTE */}
-                    <div className="relative group">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileChange(e, 'front')}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                      />
-                      <div className={`aspect-[4/3] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${dniPreviews.front ? 'border-brand-teal-500 bg-brand-teal-50' : 'border-gray-200 dark:border-gray-800'}`}>
-                        {dniPreviews.front ? (
-                          <img src={dniPreviews.front} className="w-full h-full object-cover rounded-2xl" />
-                        ) : (
-                          <>
-                            <Camera className="w-6 h-6 text-gray-400 mb-1" />
-                            <span className="text-[10px] font-bold text-gray-500">DNI FRENTE</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    {/* DNI DORSO */}
-                    <div className="relative group">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileChange(e, 'back')}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                      />
-                      <div className={`aspect-[4/3] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${dniPreviews.back ? 'border-brand-teal-500 bg-brand-teal-50' : 'border-gray-200 dark:border-gray-800'}`}>
-                        {dniPreviews.back ? (
-                          <img src={dniPreviews.back} className="w-full h-full object-cover rounded-2xl" />
-                        ) : (
-                          <>
-                            <Camera className="w-6 h-6 text-gray-400 mb-1" />
-                            <span className="text-[10px] font-bold text-gray-500">DNI DORSO</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 mt-4"
-              >
-                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Finalizar Registro <CheckCircle2 className="w-5 h-5" /></>}
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* PASO 5: PERMISOS */}
-        {step === 5 && (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h3 className="text-xl font-black text-gray-900 dark:text-white">Permisos Necesarios</h3>
-              <p className="text-sm text-gray-500">Para una mejor experiencia, activa estos permisos.</p>
-            </div>
+    <>
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex flex-col justify-center py-12 px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white dark:bg-gray-900 py-10 px-8 shadow-2xl rounded-[3rem] border border-gray-100 dark:border-gray-800 transition-all">
             
-            <div className="space-y-4">
-              <button
-                onClick={requestNotifications}
-                className={`w-full p-5 rounded-3xl border-2 transition-all flex items-center justify-between group ${permissions.notifications ? 'border-green-500 bg-green-50' : 'border-gray-100 dark:border-gray-800'}`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${permissions.notifications ? 'bg-green-100' : 'bg-gray-100'}`}>
-                    <Bell className={`w-6 h-6 ${permissions.notifications ? 'text-green-600' : 'text-gray-500'}`} />
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-bold text-sm">Notificaciones</h4>
-                    <p className="text-[10px] text-gray-500">Enterate de ofertas y ferias.</p>
-                  </div>
-                </div>
-                {permissions.notifications && <CheckCircle2 className="w-6 h-6 text-green-600" />}
-              </button>
-
-              <button
-                onClick={requestLocation}
-                className={`w-full p-5 rounded-3xl border-2 transition-all flex items-center justify-between group ${permissions.location ? 'border-green-500 bg-green-50' : 'border-gray-100 dark:border-gray-800'}`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${permissions.location ? 'bg-green-100' : 'bg-gray-100'}`}>
-                    <MapPin className={`w-6 h-6 ${permissions.location ? 'text-green-600' : 'text-gray-500'}`} />
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-bold text-sm">Ubicación</h4>
-                    <p className="text-[10px] text-gray-500">Para mostrarte ferias cercanas.</p>
-                  </div>
-                </div>
-                {permissions.location && <CheckCircle2 className="w-6 h-6 text-green-600" />}
-              </button>
+            {/* CABECERA DINÁMICA */}
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <div 
+                    key={s} 
+                    className={`h-1.5 rounded-full transition-all duration-500 ${step >= s ? 'w-6 bg-brand-teal-500' : 'w-2 bg-gray-100 dark:bg-gray-800'}`}
+                  />
+                ))}
+              </div>
+              {step > 1 && step < 5 && (
+                <button onClick={() => setStep(step - 1)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+                  <ArrowLeft className="w-5 h-5 text-gray-500" />
+                </button>
+              )}
             </div>
 
-            <button
-              onClick={handleFinalSubmit}
-              disabled={loading}
-              className="w-full py-5 bg-primary-600 hover:bg-primary-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-primary-600/30 transition-all flex items-center justify-center gap-2"
-            >
-              {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Finalizar Registro ✨</>}
-            </button>
-          </div>
-        )}
+            {/* CONTENEDOR RECAPTCHA INVISIBLE */}
+            <div id="recaptcha-container-register"></div>
 
+            {/* PASO 1: MÉTODO DE REGISTRO */}
+            {step === 1 && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">Únete a La Feria</h3>
+                  <p className="text-sm text-gray-500 font-medium">Elige tu método de registro preferido.</p>
+                </div>
+
+                {/* Toggle de Método */}
+                <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-2xl">
+                  <button
+                    onClick={() => setRegMethod('phone')}
+                    className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${regMethod === 'phone' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-teal-600' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    CELULAR
+                  </button>
+                  <button
+                    onClick={() => setRegMethod('email')}
+                    className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${regMethod === 'email' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-teal-600' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    EMAIL
+                  </button>
+                </div>
+
+                {regMethod === 'phone' ? (
+                  <form onSubmit={handleSendOtp} className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-gray-400 px-1 tracking-widest">Número de Celular</label>
+                      <div className="relative group">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-brand-teal-500 transition-colors" />
+                        <input
+                          type="tel"
+                          required
+                          placeholder="Cod. Área + Número (Ej: 11 1234 5678)"
+                          value={phoneParts.number}
+                          onChange={(e) => setPhoneParts({ ...phoneParts, number: e.target.value.replace(/\D/g, '') })}
+                          className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-black text-lg"
+                        />
+                      </div>
+                      <div className="px-4 space-y-1">
+                        <p className="text-[10px] font-black text-gray-900 dark:text-gray-100 uppercase tracking-tight text-center">
+                          ⚠️ Ingresar <span className="text-primary-600">SIN el 0</span> y <span className="text-primary-600">SIN el 15</span>
+                        </p>
+                        <p className="text-[10px] text-gray-400 text-center font-medium">
+                          Recibirás un SMS con un código de 6 dígitos para validar tu identidad.
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-5 bg-brand-teal-600 hover:bg-brand-teal-700 text-white font-black rounded-[2rem] shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-2"
+                    >
+                      {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Continuar <ArrowRight className="w-5 h-5" /></>}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleEmailRegister} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="space-y-4">
+                      <div className="relative group">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-brand-teal-500" />
+                        <input
+                          type="email"
+                          required
+                          placeholder="Correo Electrónico"
+                          value={emailData.email}
+                          onChange={(e) => setEmailData({ ...emailData, email: e.target.value })}
+                          className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
+                        />
+                      </div>
+                      <div className="relative group">
+                        <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-brand-teal-500" />
+                        <input
+                          type="password"
+                          required
+                          placeholder="Contraseña (mín. 6 caracteres)"
+                          value={emailData.password}
+                          onChange={(e) => setEmailData({ ...emailData, password: e.target.value })}
+                          className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
+                        />
+                      </div>
+                      <div className="relative group">
+                        <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-brand-teal-500" />
+                        <input
+                          type="password"
+                          required
+                          placeholder="Confirmar Contraseña"
+                          value={emailData.confirmPassword}
+                          onChange={(e) => setEmailData({ ...emailData, confirmPassword: e.target.value })}
+                          className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-5 bg-brand-teal-600 hover:bg-brand-teal-700 text-white font-black rounded-[2rem] shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-2"
+                    >
+                      {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Crear Cuenta <ArrowRight className="w-5 h-5" /></>}
+                    </button>
+                  </form>
+                )}
+
+                <div className="relative py-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-100 dark:border-gray-800"></div>
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="px-4 bg-white dark:bg-gray-900 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                      Otras opciones
+                    </span>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={signInWithGoogle}
+                  className="w-full py-4 border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
+                >
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" /> Google
+                </button>
+
+                <button
+                  onClick={() => {
+                    setError(null)
+                    setShowToast(false)
+                    onSwitchToLogin()
+                  }}
+                  className="mt-6 w-full py-4 border-2 border-gray-100 dark:border-gray-800 rounded-2xl text-sm font-black text-gray-600 dark:text-gray-400 hover:border-brand-teal-500 hover:text-brand-teal-600 transition-all uppercase tracking-widest flex items-center justify-center gap-2 group"
+                >
+                  ¿Ya tienes cuenta? <span className="text-brand-teal-600 group-hover:scale-105 transition-transform">Inicia sesión</span>
+                </button>
+              </div>
+            )}
+
+            {/* PASO 2: OTP */}
+            {step === 2 && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white">Verifica tu código</h3>
+                  <p className="text-sm text-gray-500">Te enviamos un SMS al {phoneParts.number}</p>
+                </div>
+                <form onSubmit={handleVerifyOtp} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-gray-400 px-4 tracking-widest text-center block">
+                      Ingresa aquí el código que recibiste por SMS
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="- - - - - -"
+                      maxLength={6}
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      className="w-full py-5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 focus:border-brand-teal-500 rounded-2xl transition-all font-black text-center text-3xl tracking-[0.5em] placeholder:text-gray-300 dark:placeholder:text-gray-600 outline-none shadow-inner"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-5 bg-brand-teal-600 hover:bg-brand-teal-700 text-white font-black rounded-[2rem] shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-2"
+                  >
+                    {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Verificar Código <ArrowRight className="w-5 h-5" /></>}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* PASO 3: SELECCIÓN DE ROL */}
+            {step === 3 && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white">¿Quién eres en La Feria?</h3>
+                  <p className="text-sm text-gray-500">Esto nos ayuda a personalizar tu experiencia.</p>
+                </div>
+                <div className="space-y-4">
+                  <button
+                    onClick={() => handleRoleSelect('user')}
+                    className="w-full p-6 border-2 border-gray-100 dark:border-gray-800 rounded-3xl hover:border-brand-teal-500 hover:bg-brand-teal-50/50 dark:hover:bg-brand-teal-900/10 transition-all text-left flex items-center gap-4 group"
+                  >
+                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center group-hover:bg-brand-teal-100 dark:group-hover:bg-brand-teal-900/30 transition-colors">
+                      <User className="w-6 h-6 text-gray-500 group-hover:text-brand-teal-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-gray-900 dark:text-white">Usuario Común</h4>
+                      <p className="text-xs text-gray-500">Quiero ver y comprar en ferias.</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleRoleSelect('puestero')}
+                    className="w-full p-6 border-2 border-gray-100 dark:border-gray-800 rounded-3xl hover:border-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-900/10 transition-all text-left flex items-center gap-4 group"
+                  >
+                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
+                      <Store className="w-6 h-6 text-gray-500 group-hover:text-primary-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-gray-900 dark:text-white">Puestero (Feriante)</h4>
+                      <p className="text-xs text-gray-500">Tengo un puesto y quiero vender.</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleRoleSelect('organizer')}
+                    className="w-full p-6 border-2 border-gray-100 dark:border-gray-800 rounded-3xl hover:border-accent-500 hover:bg-accent-50/50 dark:hover:bg-accent-900/10 transition-all text-left flex items-center gap-4 group"
+                  >
+                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center group-hover:bg-accent-100 dark:group-hover:bg-accent-900/30 transition-colors">
+                      <ShieldCheck className="w-6 h-6 text-gray-500 group-hover:text-accent-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-gray-900 dark:text-white">Organizador</h4>
+                      <p className="text-xs text-gray-500">Gestiono una o más ferias.</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* PASO 4: DATOS DEL PERFIL */}
+            {step === 4 && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white">Completa tus datos</h3>
+                  <p className="text-sm text-gray-500">Casi terminamos, necesitamos conocerte mejor.</p>
+                </div>
+                <form onSubmit={handleProfileSubmit} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <input
+                      required
+                      placeholder="Nombre"
+                      value={profileData.firstName}
+                      onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
+                      className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 font-bold"
+                    />
+                    <input
+                      required
+                      placeholder="Apellido"
+                      value={profileData.lastName}
+                      onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
+                      className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 font-bold"
+                    />
+                  </div>
+                  <input
+                    required
+                    type="email"
+                    placeholder="Email de contacto"
+                    value={profileData.email || authUser?.email || ''}
+                    onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                    className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 font-bold"
+                  />
+                  
+                  {selectedRole === 'organizer' && (
+                    <div className="pt-2 space-y-4 animate-in fade-in slide-in-from-top-2">
+                      <label className="text-[10px] font-black uppercase text-gray-400 px-2">Identidad (Obligatorio para Organizadores)</label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="relative group">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e, 'front')}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                          />
+                          <div className={`aspect-[4/3] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${dniPreviews.front ? 'border-brand-teal-500 bg-brand-teal-50' : 'border-gray-200 dark:border-gray-800'}`}>
+                            {dniPreviews.front ? (
+                              <img src={dniPreviews.front} className="w-full h-full object-cover rounded-2xl" />
+                            ) : (
+                              <>
+                                <Camera className="w-6 h-6 text-gray-400 mb-1" />
+                                <span className="text-[10px] font-bold text-gray-500">DNI FRENTE</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="relative group">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e, 'back')}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                          />
+                          <div className={`aspect-[4/3] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${dniPreviews.back ? 'border-brand-teal-500 bg-brand-teal-50' : 'border-gray-200 dark:border-gray-800'}`}>
+                            {dniPreviews.back ? (
+                              <img src={dniPreviews.back} className="w-full h-full object-cover rounded-2xl" />
+                            ) : (
+                              <>
+                                <Camera className="w-6 h-6 text-gray-400 mb-1" />
+                                <span className="text-[10px] font-bold text-gray-500">DNI DORSO</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 mt-4"
+                  >
+                    {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Siguiente Paso <ArrowRight className="w-5 h-5" /></>}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* PASO 5: PERMISOS */}
+            {step === 5 && (
+              <div className="space-y-8">
+                <div className="text-center">
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white">Permisos Necesarios</h3>
+                  <p className="text-sm text-gray-500">Para una mejor experiencia, activa estos permisos.</p>
+                </div>
+                
+                <div className="space-y-4">
+                  <button
+                    onClick={requestNotifications}
+                    className={`w-full p-5 rounded-3xl border-2 transition-all flex items-center justify-between group ${permissions.notifications ? 'border-green-500 bg-green-50' : 'border-gray-100 dark:border-gray-800'}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${permissions.notifications ? 'bg-green-100' : 'bg-gray-100'}`}>
+                        <Bell className={`w-6 h-6 ${permissions.notifications ? 'text-green-600' : 'text-gray-500'}`} />
+                      </div>
+                      <div className="text-left">
+                        <h4 className="font-bold text-sm">Notificaciones</h4>
+                        <p className="text-[10px] text-gray-500">Enterate de ofertas y ferias.</p>
+                      </div>
+                    </div>
+                    {permissions.notifications && <CheckCircle2 className="w-6 h-6 text-green-600" />}
+                  </button>
+
+                  <button
+                    onClick={requestLocation}
+                    className={`w-full p-5 rounded-3xl border-2 transition-all flex items-center justify-between group ${permissions.location ? 'border-green-500 bg-green-50' : 'border-gray-100 dark:border-gray-800'}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${permissions.location ? 'bg-green-100' : 'bg-gray-100'}`}>
+                        <MapPin className={`w-6 h-6 ${permissions.location ? 'text-green-600' : 'text-gray-500'}`} />
+                      </div>
+                      <div className="text-left">
+                        <h4 className="font-bold text-sm">Ubicación</h4>
+                        <p className="text-[10px] text-gray-500">Para mostrarte ferias cercanas.</p>
+                      </div>
+                    </div>
+                    {permissions.location && <CheckCircle2 className="w-6 h-6 text-green-600" />}
+                  </button>
+                </div>
+
+                <button
+                  onClick={handleCompleteRegistration}
+                  disabled={loading}
+                  className="w-full py-5 bg-brand-teal-600 text-white font-black rounded-[2rem] shadow-xl transition-all flex items-center justify-center gap-2"
+                >
+                  {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>¡Listos para empezar! <CheckCircle2 className="w-5 h-5" /></>}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+
+      <Toast 
+        message={error} 
+        type="error" 
+        isVisible={showToast} 
+        onClose={() => setShowToast(false)} 
+      />
+    </>
   )
 }

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
+import Toast from '@/components/ui/Toast'
 
 export default function Login({ onSwitchToRegister }) {
   const { 
@@ -24,6 +25,7 @@ export default function Login({ onSwitchToRegister }) {
   const [step, setStep] = useState(1) // 1: Method Select / Phone, 2: OTP, 3: Email Login
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [showToast, setShowToast] = useState(false)
 
   // Datos
   const [phoneParts, setPhoneParts] = useState({ area: '', number: '' })
@@ -42,11 +44,14 @@ export default function Login({ onSwitchToRegister }) {
     
     // Validación: Un número argentino completo (Cod. Área + Local) suele tener 10 dígitos
     if (cleanNumber.length < 10) {
-      return setError('Número demasiado corto (ingresá Cód. Área + Número)')
+      setError('Número demasiado corto (ingresá Cód. Área + Número)')
+      setShowToast(true)
+      return
     }
     
     setLoading(true)
     setError(null)
+    setShowToast(false)
     try {
       const verifier = setupRecaptcha('recaptcha-container-login')
       const result = await signInWithPhone(fullPhone, verifier)
@@ -54,6 +59,7 @@ export default function Login({ onSwitchToRegister }) {
       setStep(2)
     } catch (err) {
       setError('Error al enviar SMS. Verifica el número.')
+      setShowToast(true)
     } finally {
       setLoading(false)
     }
@@ -62,6 +68,8 @@ export default function Login({ onSwitchToRegister }) {
   const handleVerifyOtp = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError(null)
+    setShowToast(false)
     try {
       const result = await confirmationResult.confirm(otp)
       
@@ -76,6 +84,7 @@ export default function Login({ onSwitchToRegister }) {
       }
     } catch (err) {
       setError('Código incorrecto')
+      setShowToast(true)
     } finally {
       setLoading(false)
     }
@@ -85,11 +94,14 @@ export default function Login({ onSwitchToRegister }) {
   const handleEmailLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError(null)
+    setShowToast(false)
     try {
       await loginWithEmail(emailData.email, emailData.password)
       window.location.href = '/dashboard'
     } catch (err) {
       setError('Credenciales incorrectas')
+      setShowToast(true)
     } finally {
       setLoading(false)
     }
@@ -108,17 +120,10 @@ export default function Login({ onSwitchToRegister }) {
           </p>
         </div>
 
-        {error && (
-          <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-red-600 dark:text-red-400 text-sm font-bold flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" /> {error}
-          </div>
-        )}
-
         <div id="recaptcha-container-login"></div>
 
         {step === 1 && (
           <div className="space-y-6">
-            {/* OPCIÓN PRIMARIA: TELÉFONO */}
             <form onSubmit={handleSendOtp} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase text-gray-400 px-1 tracking-widest">Número de Celular</label>
@@ -133,9 +138,14 @@ export default function Login({ onSwitchToRegister }) {
                     className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-black text-lg"
                   />
                 </div>
-                <p className="text-[10px] font-black text-gray-900 dark:text-gray-100 px-4 uppercase tracking-tight text-center">
-                  ⚠️ Ingresar <span className="text-primary-600">SIN el 0</span> y <span className="text-primary-600">SIN el 15</span>
-                </p>
+                <div className="px-4 space-y-1">
+                  <p className="text-[10px] font-black text-gray-900 dark:text-gray-100 uppercase tracking-tight text-center">
+                    ⚠️ Ingresar <span className="text-primary-600">SIN el 0</span> y <span className="text-primary-600">SIN el 15</span>
+                  </p>
+                  <p className="text-[10px] text-gray-400 text-center font-medium">
+                    Recibirás un SMS con un código de 6 dígitos para validar tu identidad.
+                  </p>
+                </div>
               </div>
 
               <div className="pt-2">
@@ -146,12 +156,6 @@ export default function Login({ onSwitchToRegister }) {
                 >
                   {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Enviar Código <ArrowRight className="w-5 h-5" /></>}
                 </button>
-                <div className="text-center mt-4">
-                  <p className="text-[10px] text-gray-500 font-medium">
-                    ¿No puedes ingresar con el número de tu teléfono? <br />
-                    <span className="text-brand-teal-600 font-black cursor-pointer hover:underline uppercase tracking-widest">Prueba otras formas de acceso</span>
-                  </p>
-                </div>
               </div>
             </form>
 
@@ -181,12 +185,16 @@ export default function Login({ onSwitchToRegister }) {
               </button>
             </div>
 
-            <div className="text-center pt-4">
-              <p className="text-sm text-gray-500">
-                ¿No tienes cuenta?{' '}
-                <button onClick={onSwitchToRegister} className="text-primary-600 font-black hover:underline">Registrate gratis</button>
-              </p>
-            </div>
+            <button
+              onClick={() => {
+                setError(null)
+                setShowToast(false)
+                onSwitchToRegister()
+              }}
+              className="mt-6 w-full py-4 border-2 border-gray-100 dark:border-gray-800 rounded-2xl text-sm font-black text-gray-600 dark:text-gray-400 hover:border-brand-teal-500 hover:text-brand-teal-600 transition-all uppercase tracking-widest flex items-center justify-center gap-2 group"
+            >
+              ¿No tienes cuenta? <span className="text-brand-teal-600 group-hover:scale-105 transition-transform">Regístrate gratis</span>
+            </button>
           </div>
         )}
 
@@ -196,61 +204,72 @@ export default function Login({ onSwitchToRegister }) {
               <h3 className="text-xl font-black text-gray-900 dark:text-white">Verifica tu código</h3>
               <p className="text-sm text-gray-500">Enviado al {phoneParts.number}</p>
             </div>
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <input
-                type="text"
-                required
-                maxLength={6}
-                placeholder="* * * * * *"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="w-full py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 transition-all font-black text-center text-3xl tracking-[0.5em] placeholder:text-gray-300 dark:placeholder:text-gray-600"
-              />
+            <form onSubmit={handleVerifyOtp} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-gray-400 px-4 tracking-widest text-center block">
+                  Ingresa aquí el código que recibiste por SMS
+                </label>
+                <input
+                  type="text"
+                  required
+                  maxLength={6}
+                  placeholder="- - - - - -"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="w-full py-5 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 focus:border-brand-teal-500 rounded-2xl transition-all font-black text-center text-3xl tracking-[0.5em] placeholder:text-gray-300 dark:placeholder:text-gray-600 outline-none shadow-inner"
+                />
+              </div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2"
+                className="w-full py-5 bg-brand-teal-600 hover:bg-brand-teal-700 text-white font-black rounded-[2rem] shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-2"
               >
-                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Ingresar ahora</>}
+                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Ingresar ahora <ArrowRight className="w-5 h-5" /></>}
               </button>
-              <button onClick={() => setStep(1)} className="w-full text-center text-xs text-gray-400 font-bold">Volver atrás</button>
+              <button onClick={() => setStep(1)} className="w-full text-center text-xs text-gray-400 font-bold hover:text-brand-teal-600 transition-colors uppercase tracking-widest">Volver atrás</button>
             </form>
           </div>
         )}
 
         {step === 3 && (
-          <form onSubmit={handleEmailLogin} className="space-y-4">
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="email"
-                required
-                placeholder="tu@email.com"
-                value={emailData.email}
-                onChange={(e) => setEmailData({...emailData, email: e.target.value})}
-                className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 font-bold"
-              />
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">Acceso por Email</h3>
+              <p className="text-sm text-gray-500 font-medium">Ingresa tus credenciales para continuar.</p>
             </div>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="password"
-                required
-                placeholder="Tu contraseña"
-                value={emailData.password}
-                onChange={(e) => setEmailData({...emailData, password: e.target.value})}
-                className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 font-bold"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black rounded-2xl shadow-xl transition-all"
-            >
-              {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : "Iniciar Sesión"}
-            </button>
-            <button onClick={() => setStep(1)} className="w-full text-center text-xs text-gray-400 font-bold">Usar otro método</button>
-          </form>
+            <form onSubmit={handleEmailLogin} className="space-y-4">
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-brand-teal-500" />
+                <input
+                  type="email"
+                  required
+                  placeholder="tu@email.com"
+                  value={emailData.email}
+                  onChange={(e) => setEmailData({...emailData, email: e.target.value})}
+                  className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
+                />
+              </div>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-brand-teal-500" />
+                <input
+                  type="password"
+                  required
+                  placeholder="Tu contraseña"
+                  value={emailData.password}
+                  onChange={(e) => setEmailData({...emailData, password: e.target.value})}
+                  className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-5 bg-brand-teal-600 hover:bg-brand-teal-700 text-white font-black rounded-[2rem] shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : <>Iniciar Sesión <ArrowRight className="w-5 h-5" /></>}
+              </button>
+              <button onClick={() => setStep(1)} className="w-full text-center text-xs text-gray-400 font-bold hover:text-brand-teal-600 transition-colors uppercase tracking-widest">Usar otro método</button>
+            </form>
+          </div>
         )}
 
       </div>
