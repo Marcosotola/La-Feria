@@ -16,10 +16,13 @@ import {
   Loader2,
   Mail,
   Home,
-  Building2
+  Building2,
+  AlertCircle,
+  Upload
 } from 'lucide-react'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase/config'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { db, storage } from '@/lib/firebase/config'
 
 export default function Register({ onSwitchToLogin }) {
   const { 
@@ -55,6 +58,10 @@ export default function Register({ onSwitchToLogin }) {
     email: '',
     businessName: '', // Para puesteros
   })
+
+  // Documentación para Organizadores
+  const [dniFiles, setDniFiles] = useState({ front: null, back: null })
+  const [dniPreviews, setDniPreviews] = useState({ front: null, back: null })
 
   const [permissions, setPermissions] = useState({
     notifications: false,
@@ -118,10 +125,57 @@ export default function Register({ onSwitchToLogin }) {
     setStep(4)
   }
 
-  // === PASO 4: Datos del Perfil ===
-  const handleProfileSubmit = (e) => {
+  // === PASO 4: Guardar Perfil ===
+  const handleProfileSubmit = async (e) => {
     e.preventDefault()
-    setStep(5)
+    setLoading(true)
+    setError(null)
+
+    try {
+      let dniUrls = { front: '', back: '' }
+
+      // Si es organizador, subir DNIs
+      if (selectedRole === 'organizer') {
+        if (!dniFiles.front || !dniFiles.back) {
+          throw new Error('Debes subir ambas fotos del DNI')
+        }
+
+        // Subir Frente
+        const frontRef = ref(storage, `dni/${authUser.uid}/front_${Date.now()}`)
+        const frontSnapshot = await uploadBytes(frontRef, dniFiles.front)
+        dniUrls.front = await getDownloadURL(frontSnapshot.ref)
+
+        // Subir Dorso
+        const backRef = ref(storage, `dni/${authUser.uid}/back_${Date.now()}`)
+        const backSnapshot = await uploadBytes(backRef, dniFiles.back)
+        dniUrls.back = await getDownloadURL(backSnapshot.ref)
+      }
+
+      const finalData = {
+        ...profileData,
+        role: selectedRole,
+        uid: authUser.uid,
+        phoneNumber: authUser.phoneNumber,
+        createdAt: new Date().toISOString(),
+        profileCompleted: true,
+        dniPhotos: selectedRole === 'organizer' ? dniUrls : null
+      }
+
+      await setDoc(doc(db, 'users', authUser.uid), finalData)
+      setStep(5)
+    } catch (err) {
+      setError(err.message || 'Error al guardar el perfil')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleFileChange = (e, type) => {
+    const file = e.target.files[0]
+    if (file) {
+      setDniFiles(prev => ({ ...prev, [type]: file }))
+      setDniPreviews(prev => ({ ...prev, [type]: URL.createObjectURL(file) }))
+    }
   }
 
   // === PASO 5: Permisos y Guardar ===
@@ -129,18 +183,13 @@ export default function Register({ onSwitchToLogin }) {
     setLoading(true)
     try {
       // 1. Guardar en Firestore
-      const newUser = {
-        uid: authUser.uid,
-        phoneNumber: authUser.phoneNumber,
-        role: selectedRole,
-        ...profileData,
+      const updateData = {
         permissions,
-        createdAt: new Date(),
         updatedAt: new Date(),
         accountStatus: 'active'
       }
 
-      await setDoc(doc(db, 'users', authUser.uid), newUser)
+      await setDoc(doc(db, 'users', authUser.uid), updateData, { merge: true })
       await refreshUserData()
       
       // 2. Redirigir según rol
@@ -378,24 +427,58 @@ export default function Register({ onSwitchToLogin }) {
                 className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 font-bold"
               />
               
-              {selectedRole === 'puestero' && (
-                <div className="pt-2 animate-in fade-in slide-in-from-top-2">
-                  <label className="text-[10px] font-black uppercase text-gray-400 px-2">Datos del Negocio</label>
-                  <input
-                    required
-                    placeholder="Nombre de tu Tienda"
-                    value={profileData.businessName}
-                    onChange={(e) => setProfileData({...profileData, businessName: e.target.value})}
-                    className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-primary-100 rounded-2xl focus:ring-2 focus:ring-primary-500 font-bold mt-1"
-                  />
+              {selectedRole === 'organizer' && (
+                <div className="pt-2 space-y-4 animate-in fade-in slide-in-from-top-2">
+                  <label className="text-[10px] font-black uppercase text-gray-400 px-2">Identidad (Obligatorio para Organizadores)</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* DNI FRENTE */}
+                    <div className="relative group">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, 'front')}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                      />
+                      <div className={`aspect-[4/3] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${dniPreviews.front ? 'border-brand-teal-500 bg-brand-teal-50' : 'border-gray-200 dark:border-gray-800'}`}>
+                        {dniPreviews.front ? (
+                          <img src={dniPreviews.front} className="w-full h-full object-cover rounded-2xl" />
+                        ) : (
+                          <>
+                            <Camera className="w-6 h-6 text-gray-400 mb-1" />
+                            <span className="text-[10px] font-bold text-gray-500">DNI FRENTE</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {/* DNI DORSO */}
+                    <div className="relative group">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, 'back')}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                      />
+                      <div className={`aspect-[4/3] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${dniPreviews.back ? 'border-brand-teal-500 bg-brand-teal-50' : 'border-gray-200 dark:border-gray-800'}`}>
+                        {dniPreviews.back ? (
+                          <img src={dniPreviews.back} className="w-full h-full object-cover rounded-2xl" />
+                        ) : (
+                          <>
+                            <Camera className="w-6 h-6 text-gray-400 mb-1" />
+                            <span className="text-[10px] font-bold text-gray-500">DNI DORSO</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
               <button
                 type="submit"
+                disabled={loading}
                 className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 mt-4"
               >
-                Siguiente Paso <ArrowRight className="w-5 h-5" />
+                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Finalizar Registro <CheckCircle2 className="w-5 h-5" /></>}
               </button>
             </form>
           </div>
