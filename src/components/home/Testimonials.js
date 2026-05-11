@@ -32,7 +32,7 @@ const showNotification = (message, type = 'info') => {
 
 export default function Testimonials({ 
   title = "Lo que dice nuestra comunidad",
-  subtitle = "Historias reales de hermanos que han encontrado bendición a través de La Feria",
+  subtitle = "Historias reales de feriantes y usuarios que han impulsado el comercio local a través de La Feria",
   showAddButton = true,
   limit = 6,
   featuredOnly = false
@@ -386,7 +386,7 @@ export default function Testimonials({
               ¿Quieres formar parte de estas historias?
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-lg mx-auto">
-              Únete a nuestra comunidad y comparte tus talentos con la familia de la fe
+              Únete a nuestra red de comercio local y haz crecer tu emprendimiento hoy mismo.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl">

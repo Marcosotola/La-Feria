@@ -10,7 +10,9 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   sendEmailVerification,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  RecaptchaVerifier,
+  signInWithPhoneNumber
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/config';
@@ -99,6 +101,30 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('❌ Error refrescando datos del usuario:', error);
       return null;
+    }
+  };
+
+  // 📱 NUEVA FUNCIÓN: Configurar Recaptcha para Teléfono
+  const setupRecaptcha = (containerId) => {
+    if (window.recaptchaVerifier) return window.recaptchaVerifier;
+    
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+      'size': 'invisible',
+      'callback': (response) => {
+        // reCAPTCHA solved, allow signInWithPhoneNumber.
+      }
+    });
+    return window.recaptchaVerifier;
+  };
+
+  // 📱 NUEVA FUNCIÓN: Iniciar sesión con teléfono (enviar SMS)
+  const signInWithPhone = async (phoneNumber, recaptchaVerifier) => {
+    try {
+      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+      return confirmationResult;
+    } catch (error) {
+      console.error("Error al enviar SMS:", error);
+      throw error;
     }
   };
 
@@ -305,7 +331,9 @@ export const AuthProvider = ({ children }) => {
     completeProfile,
     resetPassword,
     signOut,
-    refreshUserData // ✨ NUEVA FUNCIÓN EXPORTADA
+    refreshUserData,
+    setupRecaptcha,
+    signInWithPhone
   };
 
   return (

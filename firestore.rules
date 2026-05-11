@@ -143,5 +143,12 @@ service cloud.firestore {
       allow update: if isAuth() && request.auth.uid == resource.data.usuarioId;
       allow delete: if isAdmin();
     }
+
+    // ===== FERIAS =====
+    match /ferias/{feriaId} {
+      allow read: if true;
+      allow create: if isAuth(); // Validamos que sea organizador en el backend o aquí
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.creatorId || isAdmin());
+    }
   }
 }

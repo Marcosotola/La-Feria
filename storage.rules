@@ -32,5 +32,17 @@ service firebase.storage {
       allow read: if true;
       allow write: if isAdmin() && isImage();
     }
+
+    // Documentos DNI de usuarios
+    match /users/{userId}/{allPaths=**} {
+      allow read: if isAuth() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAuth() && request.auth.uid == userId && isImage();
+    }
+
+    // Imágenes de Ferias
+    match /fairs/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuth() && isImage();
+    }
   }
 }

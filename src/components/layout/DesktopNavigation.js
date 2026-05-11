@@ -16,6 +16,7 @@ import {
   categoryColors 
 } from '@/constants/categoryUI'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function DesktopNavigation() {
   // TODOS LOS HOOKS PRIMERO
@@ -51,6 +52,11 @@ export default function DesktopNavigation() {
       label: 'Inicio',
       icon: Home,
       href: '/'
+    },
+    {
+      id: 'ferias',
+      label: 'Ferias',
+      href: '/ferias'
     },
     {
       id: 'productos',
@@ -498,7 +504,18 @@ export default function DesktopNavigation() {
                       }
                     `}
                   >
-                    <Icon className="w-4 h-4" />
+                    {item.id === 'ferias' ? (
+                      <div className="relative w-5 h-5">
+                        <Image
+                          src="/icon.png"
+                          alt="Ferias"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <Icon className="w-4 h-4" />
+                    )}
                     <span>{item.label}</span>
                     {item.hasDropdown && (
                       <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isActive ? 'rotate-180' : ''}`} />

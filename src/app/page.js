@@ -1,13 +1,13 @@
 
 'use client'
 import { useRouter } from 'next/navigation'
-import HeroCarousel from '@/components/home/HeroCarousel'
 import FeaturedProducts from '@/components/home/FeaturedProducts'
 import FeaturedServices from '@/components/home/FeaturedServices'
 import FeaturedJobs from '@/components/home/FeaturedJobs'
 import RecentItems from '@/components/home/RecentItems'
 import CategoriesSection from '@/components/home/CategoriesSection'
 import Testimonials from '@/components/home/Testimonials'
+import FairsMap from '@/components/home/FairsMap'
 
 import NotificationManager from '@/components/ui/NotificationManager'
 import ActivateStoreButton from '@/components/tienda/ActivateStoreButton'
@@ -39,9 +39,9 @@ export default function HomePage() {
 
   return (
     <>
-      {/* Hero Carousel - Eventos de la iglesia */}
-      <section className="px-4 sm:px-6 lg:px-8 pt-2 pb-4 lg:pt-2 lg:pb-4">
-        <HeroCarousel />
+      {/* Mapa Interactivo - EL NUEVO CORAZÓN DE LA APP */}
+      <section className="px-4 sm:px-6 lg:px-8 py-6">
+        <FairsMap />
       </section>
 
       {/* Activa tu Tienda */}

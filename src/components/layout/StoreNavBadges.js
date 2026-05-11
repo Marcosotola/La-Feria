@@ -16,7 +16,8 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
-  Heart
+  Heart,
+  MapPin
 } from 'lucide-react';
 
 const StoreNavBadges = ({ activeSection, setActiveSection }) => {
@@ -62,6 +63,13 @@ const StoreNavBadges = ({ activeSection, setActiveSection }) => {
       icon: ImageIcon,
       color: 'purple',
       description: 'Imagen de marca'
+    },
+    {
+      id: 'fairs',
+      name: 'Mis Ferias',
+      icon: MapPin,
+      color: 'blue',
+      description: 'Donde estoy hoy'
     },
     {
       id: 'config',

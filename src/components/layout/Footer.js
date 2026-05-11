@@ -85,8 +85,8 @@ export default function Footer() {
               </div>
               
               <p className="text-gray-300 dark:text-gray-400 mb-6 leading-relaxed text-sm lg:text-base">
-                Una plataforma que conecta a nuestra comunidad cristiana, facilitando el comercio local 
-                y fortaleciendo los lazos entre hermanos en la fe.
+                La plataforma líder para encontrar ferias locales, gestionar puestos y 
+                conectar con emprendedores de tu comunidad. Impulsamos el apoyo local y la economía regional.
               </p>
 
               {/* Información de contacto */}
@@ -152,34 +152,18 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Versículo bíblico destacado */}
-          <div className="mt-8 lg:mt-12 pt-6 lg:pt-8 border-t border-gray-700 dark:border-gray-800">
-            <div className="max-w-4xl mx-auto text-center">
-              <div className="relative">
-                <div className="absolute -top-1 -left-1 lg:-top-2 lg:-left-2 w-6 h-6 lg:w-8 lg:h-8 text-primary-400/20 text-4xl lg:text-6xl leading-none">"</div>
-                <blockquote className="text-base lg:text-xl italic mb-3 lg:mb-4 text-gray-200 dark:text-gray-300 relative z-10 px-4">
-                  Así que, según tengamos oportunidad, hagamos bien a todos,
-                  y mayormente a los de la familia de la fe.
-                </blockquote>
-                <div className="absolute -bottom-1 -right-1 lg:-bottom-2 lg:-right-2 w-6 h-6 lg:w-8 lg:h-8 text-primary-400/20 text-4xl lg:text-6xl leading-none rotate-180">"</div>
-              </div>
-              <cite className="text-primary-400 font-medium text-sm lg:text-lg">
-                Gálatas 6:10
-              </cite>
-            </div>
-          </div>
 
           {/* Footer inferior */}
           <div className="mt-6 lg:mt-8 pt-4 lg:pt-6 border-t border-gray-700 dark:border-gray-800">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-2 text-xs lg:text-sm text-gray-400 dark:text-gray-500">
-                <Heart className="w-4 h-4 text-red-400" />
-                <span>Hecho con amor para la familia de la fe</span>
+                <Heart className="w-4 h-4 text-primary-500" />
+                <span>Hecho por Mira Soluciones Digitales</span>
               </div>
 
               <div className="text-xs lg:text-sm text-gray-500 dark:text-gray-600 text-center md:text-right">
                 <div>© {currentYear} La Feria</div>
-                <div className="text-xs mt-1">Iglesia Toma Tu Lugar - Córdoba, Argentina</div>
+                <div className="text-xs mt-1">Conectando ferias y emprendedores locales</div>
               </div>
             </div>
           </div>

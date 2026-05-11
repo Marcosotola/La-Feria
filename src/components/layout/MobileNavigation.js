@@ -1,7 +1,7 @@
 // src/components/layout/MobileNavigation.js
 
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import {
   Home, Heart, Grid3X3, X, Package, Briefcase, ChevronLeft,
@@ -18,6 +18,7 @@ import {
   categoryColors 
 } from '@/constants/categoryUI'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function MobileNavigation() {
   // TODOS LOS HOOKS PRIMERO - SIEMPRE EN EL MISMO ORDEN
@@ -30,6 +31,23 @@ export default function MobileNavigation() {
   const [selectedMainCategory, setSelectedMainCategory] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [showSubcategories, setShowSubcategories] = useState(false)
+
+  // Sincronizar pestaña activa con la ruta actual
+  useEffect(() => {
+    if (!pathname) return
+
+    if (pathname === '/') {
+      setActiveTab('home')
+    } else if (pathname.startsWith('/ferias')) {
+      setActiveTab('ferias')
+    } else if (pathname.startsWith('/categorias') || pathname.startsWith('/productos') || pathname.startsWith('/servicios') || pathname.startsWith('/empleos')) {
+      setActiveTab('categories')
+    } else if (pathname.startsWith('/tiendas')) {
+      setActiveTab('stores')
+    } else if (pathname.startsWith('/dashboard') || pathname.startsWith('/login')) {
+      setActiveTab('user')
+    }
+  }, [pathname])
 
   // DESPUÉS DE LOS HOOKS, LAS CONDICIONES
   const isDashboardRoute = pathname?.startsWith('/dashboard')
@@ -44,10 +62,16 @@ export default function MobileNavigation() {
     },
     {
       id: 'categories',
-      label: 'Categorías',
+      label: 'Explorar',
       icon: Grid3X3,
       href: '/categorias',
       hasModal: true
+    },
+    {
+      id: 'ferias',
+      label: 'Ferias',
+      href: '/ferias',
+      isCenter: true
     },
     {
       id: 'stores',
@@ -190,8 +214,8 @@ export default function MobileNavigation() {
       return
     }
 
-    if (itemId === 'home') {
-      router.push('/')
+    if (itemId === 'ferias') {
+      router.push('/ferias')
       setActiveTab(itemId)
       return
     }
@@ -537,53 +561,80 @@ export default function MobileNavigation() {
   return (
     <>
       {/* Navegación móvil fija */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg">
-        {/* Indicador de pestaña activa */}
-        {activeTab !== 'categories' && activeTab !== 'user' && (
-          <div className="absolute top-0 left-0 h-0.5 bg-brand-teal-500 transition-all duration-300 ease-out"
-            style={{
-              width: `${100 / navItems.length}%`,
-              transform: `translateX(${navItems.findIndex(item => item.id === activeTab) * 100}%)`,
-            }}
-          />
-        )}
-
-        <div className="flex items-center justify-around py-2.5 safe-area-inset-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-brand-teal-900 border-t border-brand-teal-800 shadow-[0_-4px_20px_rgba(0,0,0,0.4)]" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) * 0.8 + 8px)' }}>
+        <div className="flex items-center justify-around h-16 px-2 relative">
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.id
+            
+            if (item.isCenter) {
+              return (
+                <div key={item.id} className="relative -mt-10 flex flex-col items-center">
+                  <button
+                    onClick={() => handleTabClick(item.id)}
+                    className={`
+                      w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(232,97,60,0.2)]
+                      bg-white dark:bg-gray-100
+                      border-4 border-primary-500 active:scale-95 transition-all duration-300
+                      group relative
+                    `}
+                    aria-label={item.label}
+                  >
+                    <div className="relative z-10 w-13 h-13 transition-transform duration-500 group-hover:scale-110">
+                      <Image
+                        src="/icon.png"
+                        alt="La Feria"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    {/* Brillo sutil externo si está activo */}
+                    {isActive && (
+                      <div className="absolute inset-0 rounded-full ring-4 ring-primary-500/30 animate-pulse" />
+                    )}
+                  </button>
+                  <span className={`
+                    mt-1 text-[10px] font-bold uppercase tracking-wider
+                    ${isActive ? 'text-primary-400' : 'text-white/60'}
+                  `}>
+                    {item.label}
+                  </span>
+                </div>
+              )
+            }
 
             return (
               <button
                 key={item.id}
                 onClick={() => handleTabClick(item.id)}
                 className={`
-                  relative flex flex-col items-center justify-center py-2 rounded-xl min-w-0 flex-1
-                  transition-all duration-200 ease-out cursor-pointer
+                  relative flex flex-col items-center justify-center py-1 min-w-0 flex-1
+                  transition-all duration-300 ease-out cursor-pointer
                   ${isActive
-                    ? 'text-brand-teal-500 dark:text-brand-teal-400'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'text-white scale-110'
+                    : 'text-white/50 hover:text-white/80'
                   }
                 `}
                 aria-label={item.label}
               >
-                {isActive && (
-                  <div className="absolute inset-0 rounded-xl bg-brand-teal-500/10 dark:bg-brand-teal-400/10 transition-all duration-200" />
-                )}
-
-                <div className="relative mb-1 z-10">
+                <div className="relative mb-0.5 z-10">
                   <Icon className={`
-                    w-6 h-6 transition-all duration-200
-                    ${isActive ? 'scale-110' : 'hover:scale-105'}
+                    w-6 h-6 transition-all duration-300
+                    ${isActive ? 'drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' : ''}
                   `} />
                 </div>
 
                 <span className={`
-                  text-xs font-medium transition-all duration-200 z-10 relative truncate max-w-full
-                  ${isActive ? 'font-semibold' : ''}
+                  text-[10px] font-medium transition-all duration-300 z-10 relative truncate max-w-full
+                  ${isActive ? 'font-bold opacity-100' : 'opacity-70'}
                 `}>
                   {item.label}
                 </span>
+                
+                {/* Indicador sutil para tabs activos no centrales */}
+                {isActive && (
+                  <div className="absolute -bottom-1 w-1 h-1 bg-white rounded-full shadow-[0_0_8px_white]" />
+                )}
               </button>
             )
           })}

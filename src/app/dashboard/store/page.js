@@ -9,6 +9,7 @@ import StoreNavBadges from '@/components/layout/StoreNavBadges';
 import BusinessInfoSection from '@/components/store/BusinessInfoSection';
 import StoreLogoSection from '@/components/store/StoreLogoSection';
 import StoreConfigSection from '@/components/store/StoreConfigSection';
+import StoreFairsSection from '@/components/store/StoreFairsSection';
 import ToastContainer from '@/components/ui/ToastContainer';
 import useToast from '@/hooks/useToast';
 import { Store, ChevronLeft } from 'lucide-react';
@@ -107,6 +108,8 @@ export default function StorePage() {
             onConfigUpdate={handleConfigUpdate}
           />
         );
+      case 'fairs':
+        return <StoreFairsSection showMessage={showMessage} />;
       default:
         return <BusinessInfoSection showMessage={showMessage} />;
     }
