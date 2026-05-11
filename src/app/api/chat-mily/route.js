@@ -156,7 +156,7 @@ async function getMilyResponse(userMessage, conversationHistory, analysis, searc
   const totalResults = searchResults.productos.length + searchResults.servicios.length + searchResults.empleos.length;
   const hasResults = totalResults > 0;
 
-  const systemPrompt = `Eres Mily, asistente virtual amigable de Family Market (Argentina).
+  const systemPrompt = `Eres Mily, asistente virtual amigable de La Feria (Argentina).
 
 PERSONALIDAD:
 - Alegre, cercana, usas emojis ocasionalmente (máximo 2)

@@ -178,7 +178,7 @@ export default function ServiceCard({
 
   const handleViewStore = (e) => {
     e.stopPropagation();
-    const storeUrl = `https://familymarket.vercel.app/tienda/${service.tiendaInfo?.slug || storeData?.storeSlug}`;
+    const storeUrl = `https://laferia.vercel.app/tienda/${service.tiendaInfo?.slug || storeData?.storeSlug}`;
     window.open(storeUrl, '_blank');
   };
 

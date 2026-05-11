@@ -197,16 +197,16 @@ export default function Header() {
             {/* Logo Mobile con enlace */}
             <Link href="/about" className="flex-1 flex items-center justify-center gap-3 group">
               <Image
-                src="/icon.png"
-                alt="Family Market Logo"
-                width={32}
-                height={32}
-                className="w-8 h-8 transition-transform duration-200 group-hover:scale-105"
+                src="/logos/logo.png"
+                alt="La Feria Logo"
+                width={64}
+                height={64}
+                className="w-16 h-16 transition-transform duration-200 group-hover:scale-105"
                 priority
               />
               <h1 className="text-2xl font-bold transition-colors duration-200">
-                <span className="text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200">Family</span>{' '}
-                <span className="text-primary-500 group-hover:text-primary-600">Market</span>
+                <span className="text-brand-teal-500 group-hover:text-brand-teal-600">La</span>{' '}
+                <span className="text-primary-500 group-hover:text-primary-600">Feria</span>
               </h1>
             </Link>
 
@@ -372,16 +372,16 @@ export default function Header() {
             {/* Logo Desktop con enlace */}
             <Link href="/about" className="flex items-center flex-shrink-0 gap-4 group">
               <Image
-                src="/icon.png"
-                alt="Family Market Logo"
-                width={40}
-                height={40}
-                className="w-15 h-15 transition-transform duration-200 group-hover:scale-105"
+                src="/logos/logo.png"
+                alt="La Feria Logo"
+                width={112}
+                height={112}
+                className="w-28 h-28 transition-transform duration-200 group-hover:scale-105"
                 priority
               />
               <h1 className="text-3xl xl:text-4xl font-bold transition-colors duration-200">
-                <span className="text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200">Family</span>{' '}
-                <span className="text-primary-500 group-hover:text-primary-600">Market</span>
+                <span className="text-brand-teal-500 group-hover:text-brand-teal-600">La</span>{' '}
+                <span className="text-primary-500 group-hover:text-primary-600">Feria</span>
               </h1>
             </Link>
 

@@ -58,7 +58,7 @@ export default function Footer() {
 
   const contactInfo = [
     { icon: Phone, text: '+54 351 123-4567', href: 'tel:+543511234567' },
-    { icon: Mail, text: 'hola@familymarket.com', href: 'mailto:hola@familymarket.com' },
+    { icon: Mail, text: 'hola@laferia.com', href: 'mailto:hola@laferia.com' },
     { icon: MapPin, text: 'Córdoba, Argentina', href: '#' }
   ]
 
@@ -72,14 +72,15 @@ export default function Footer() {
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <Image
-                  src="/icon.png"
-                  alt="Family Market Logo"
+                  src="/logos/logo.png"
+                  alt="La Feria Logo"
                   width={40}
                   height={40}
                   className="w-10 h-10"
                 />
                 <h3 className="text-2xl font-bold">
-                  Family <span className="text-primary-400">Market</span>
+                  <span className="text-brand-teal-400">La</span>{' '}
+                  <span className="text-primary-400">Feria</span>
                 </h3>
               </div>
               
@@ -177,7 +178,7 @@ export default function Footer() {
               </div>
 
               <div className="text-xs lg:text-sm text-gray-500 dark:text-gray-600 text-center md:text-right">
-                <div>© {currentYear} Family Market</div>
+                <div>© {currentYear} La Feria</div>
                 <div className="text-xs mt-1">Iglesia Toma Tu Lugar - Córdoba, Argentina</div>
               </div>
             </div>

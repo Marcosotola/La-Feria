@@ -122,7 +122,10 @@ export default function Register({ onSwitchToLogin }) {
           <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Home className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Family Market</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            <span className="text-brand-teal-500">La</span>{' '}
+            <span className="text-primary-500">Feria</span>
+          </h1>
           <p className="text-gray-600 dark:text-gray-400">Únete a nuestra comunidad</p>
         </div>
 
@@ -323,7 +326,7 @@ export default function Register({ onSwitchToLogin }) {
             {errors.businessName && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.businessName}</p>}
             {formData.businessName && (
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Tu tienda será: familymarket.vercel.app/tienda/{generateStoreSlug(formData.businessName, formData.firstName, formData.lastName)}
+                Tu tienda será: laferia.vercel.app/tienda/{generateStoreSlug(formData.businessName, formData.firstName, formData.lastName)}
               </p>
             )}
           </div>
@@ -358,7 +361,7 @@ export default function Register({ onSwitchToLogin }) {
                 <a href="/terms" target="_blank" className="text-primary-600 dark:text-primary-400 hover:underline">
                   términos y condiciones
                 </a>{' '}
-                de Family Market *
+                de La Feria *
               </label>
             </div>
             {errors.acceptTerms && <p className="text-sm text-red-600 dark:text-red-400">{errors.acceptTerms}</p>}

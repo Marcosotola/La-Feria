@@ -76,7 +76,7 @@ export default function FeaturedJobs() {
   const handleJobClick = (job) => {
     const storeSlug = job.tiendaInfo?.slug || job.storeSlug;
     if (storeSlug && job.id) {
-      const url = `https://familymarket.vercel.app/tienda/${storeSlug}/empleos/${job.id}`;
+      const url = `https://laferia.vercel.app/tienda/${storeSlug}/empleos/${job.id}`;
       window.open(url, '_blank');
     }
   };

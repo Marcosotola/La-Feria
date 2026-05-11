@@ -260,7 +260,7 @@ export default function AccountSettingsSection({ showMessage }) {
                     Tienda online
                   </p>
                   <a
-                    href={`https://familymarket.com/tienda/${userData.storeSlug}`}
+                    href={`https://laferia.com/tienda/${userData.storeSlug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center"

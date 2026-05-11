@@ -24,12 +24,12 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('Mensaje recibido en segundo plano:', payload);
   
-  const notificationTitle = payload.notification?.title || 'Family Market';
+  const notificationTitle = payload.notification?.title || 'La Feria';
   const notificationOptions = {
     body: payload.notification?.body || 'Nueva notificación disponible',
     icon: '/icon-192.png',
     badge: '/icon-192.png',
-    tag: 'family-market-notification',
+    tag: 'la-feria-notification',
     vibrate: [200, 100, 200],
     data: payload.data || {},
     actions: [

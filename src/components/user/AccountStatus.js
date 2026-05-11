@@ -114,7 +114,7 @@ export default function AccountStatus({ userId, showComments = true }) {
             </h3>
             <p className="text-sm text-gray-600">
               {isValidated 
-                ? 'Esta cuenta ha sido verificada por un administrador de Family Market'
+                ? 'Esta cuenta ha sido verificada por un administrador de La Feria'
                 : 'Esta cuenta está pendiente de verificación por un administrador'
               }
             </p>

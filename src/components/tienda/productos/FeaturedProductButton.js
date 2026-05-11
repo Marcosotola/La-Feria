@@ -174,7 +174,7 @@ export default function FeaturedProductButton({
           />
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Contribución sugerida: $1000 - Ayuda a mantener Family Market funcionando
+          Contribución sugerida: $1000 - Ayuda a mantener La Feria funcionando
         </p>
       </div>
 
@@ -193,7 +193,7 @@ export default function FeaturedProductButton({
           <li>• Mayor visibilidad para más contactos</li>
           <li>• Badge especial de "Destacado"</li>
           <li>• Duración: 7 días completos</li>
-          <li>• Apoyas el desarrollo de Family Market</li>
+          <li>• Apoyas el desarrollo de La Feria</li>
         </ul>
       </div>
 

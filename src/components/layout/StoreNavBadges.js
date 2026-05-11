@@ -37,7 +37,7 @@ const StoreNavBadges = ({ activeSection, setActiveSection }) => {
   };
 
   const storeSlug = getStoreSlug();
-  const storeUrl = `https://familymarket.vercel.app/tienda/${storeSlug}`;
+  const storeUrl = `https://laferia.vercel.app/tienda/${storeSlug}`;
 
   const navItems = [
     {

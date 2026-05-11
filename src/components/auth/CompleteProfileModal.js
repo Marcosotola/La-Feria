@@ -93,7 +93,7 @@ export default function CompleteProfileModal({ user, onComplete }) {
             <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">¡Bienvenido a Family Market!</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">¡Bienvenido a La Feria!</h1>
             <p className="text-gray-600 dark:text-gray-400">Necesitamos algunos datos adicionales para completar tu perfil</p>
           </div>
 
@@ -171,7 +171,7 @@ export default function CompleteProfileModal({ user, onComplete }) {
               {/* Preview de la URL */}
               {formData.businessName && (
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Tu tienda será: familymarket.com/tienda/{generateStoreSlug(formData.businessName, user?.displayName)}
+                  Tu tienda será: laferia.com/tienda/{generateStoreSlug(formData.businessName, user?.displayName)}
                 </p>
               )}
               
@@ -217,7 +217,7 @@ export default function CompleteProfileModal({ user, onComplete }) {
                   >
                     términos y condiciones
                   </a>{' '}
-                  de Family Market *
+                  de La Feria *
                 </label>
               </div>
               {errors.acceptTerms && <p className="text-sm text-red-600 dark:text-red-400">{errors.acceptTerms}</p>}

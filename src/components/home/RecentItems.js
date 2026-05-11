@@ -146,11 +146,11 @@ export default function RecentItems() {
 
     let url = '';
     if (item.tipo === 'producto') {
-      url = `https://familymarket.vercel.app/tienda/${storeSlug}/producto/${item.id}`;
+      url = `https://laferia.vercel.app/tienda/${storeSlug}/producto/${item.id}`;
     } else if (item.tipo === 'servicio') {
-      url = `https://familymarket.vercel.app/tienda/${storeSlug}/servicio/${item.id}`;
+      url = `https://laferia.vercel.app/tienda/${storeSlug}/servicio/${item.id}`;
     } else if (item.tipo === 'empleo') {
-      url = `https://familymarket.vercel.app/tienda/${storeSlug}/empleo/${item.id}`;
+      url = `https://laferia.vercel.app/tienda/${storeSlug}/empleo/${item.id}`;
     }
 
     if (url) window.open(url, '_blank');

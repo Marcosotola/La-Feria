@@ -12,14 +12,14 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-4 mb-6">
             <Image
-              src="/icon.png"
-              alt="Family Market Logo"
+              src="/logos/logo.png"
+              alt="La Feria Logo"
               width={60}
               height={60}
               className="w-15 h-15"
             />
             <h1 className="text-4xl md:text-6xl font-bold">
-              Family <span className="text-primary-200">Market</span>
+              La <span className="text-primary-200">Feria</span>
             </h1>
           </div>
           <blockquote className="text-xl md:text-2xl italic mb-4 text-primary-100">
@@ -32,14 +32,14 @@ export default function AboutPage() {
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         
-        {/* ¿Qué es Family Market? */}
+        {/* ¿Qué es La Feria? */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-            ¿Qué es Family Market?
+            ¿Qué es La Feria?
           </h2>
           <div className="space-y-6 text-gray-700 dark:text-gray-300">
             <p className="text-xl leading-relaxed">
-              Family Market es una plataforma comunitaria diseñada especialmente para bendecir a todos los hermanos de nuestra iglesia "Toma Tu Lugar". Nuestro propósito es simple pero poderoso: conectar, apoyar y visibilizar los talentos, emprendimientos y necesidades de nuestra comunidad.
+              La Feria es una plataforma comunitaria diseñada especialmente para bendecir a todos los hermanos de nuestra iglesia "Toma Tu Lugar". Nuestro propósito es simple pero poderoso: conectar, apoyar y visibilizar los talentos, emprendimientos y necesidades de nuestra comunidad.
             </p>
             <p className="text-lg leading-relaxed">
               Imaginate una gran feria virtual donde podés recorrer productos y servicios ofrecidos por otros miembros de la iglesia, todo en un solo lugar. Desde ropa artesanal hasta servicios de carpintería, pasando por comidas caseras, clases particulares, asesorías profesionales, ofertas de empleo y mucho más.
@@ -170,11 +170,11 @@ export default function AboutPage() {
         {/* Cómo se mantiene */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-            ¿Cómo se Mantiene Family Market?
+            ¿Cómo se Mantiene La Feria?
           </h2>
           <div className="bg-green-50 dark:bg-green-900/20 p-8 rounded-lg border border-green-200 dark:border-green-800">
             <p className="text-lg text-green-800 dark:text-green-200 mb-4">
-              <strong>Family Market no cobra comisión</strong>, ni es una plataforma con fines de lucro. Las colaboraciones económicas son 100% voluntarias y contribuyen a:
+              <strong>La Feria no cobra comisión</strong>, ni es una plataforma con fines de lucro. Las colaboraciones económicas son 100% voluntarias y contribuyen a:
             </p>
             <ul className="grid md:grid-cols-2 gap-2 text-green-700 dark:text-green-300">
               <li className="flex items-center gap-2">
@@ -216,7 +216,7 @@ export default function AboutPage() {
               Desarrollador Web Fullstack
             </p>
             <p className="text-gray-700 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-              Family Market nace de mi sueño de ayudar a los emprendedores de la iglesia TTL y, de paso, fomentar la comunión entre hermanos. Como desarrollador y miembro de la comunidad, vi una oportunidad de usar la tecnología para fortalecer los lazos que nos unen como familia de la fe.
+              La Feria nace de mi sueño de ayudar a los emprendedores de la iglesia TTL y, de paso, fomentar la comunión entre hermanos. Como desarrollador y miembro de la comunidad, vi una oportunidad de usar la tecnología para fortalecer los lazos que nos unen como familia de la fe.
             </p>
           </div>
         </section>

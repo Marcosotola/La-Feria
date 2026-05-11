@@ -149,7 +149,7 @@ export default function BusinessInfoSection({ showMessage }) {
           </label>
           <div className="flex flex-col sm:flex-row">
             <span className="inline-flex items-center px-3 py-2 border border-b-0 sm:border-b sm:border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm rounded-t-lg sm:rounded-t-none sm:rounded-l-lg">
-              familymarket.com/tienda/
+              laferia.com/tienda/
             </span>
             <input
               type="text"

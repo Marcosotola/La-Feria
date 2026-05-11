@@ -274,12 +274,12 @@ export default function UserProfilePage() {
                   <p className="text-sm text-gray-500 dark:text-gray-400">URL de la Tienda</p>
                   {userData?.storeUrl ? (
                     <a
-                      href={`https://familymarket.com${userData.storeUrl}`}
+                      href={`https://laferia.com${userData.storeUrl}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
-                      familymarket.com{userData.storeUrl}
+                      laferia.com{userData.storeUrl}
                     </a>
                   ) : (
                     <p className="text-gray-500">No configurada</p>

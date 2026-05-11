@@ -1,0 +1,36 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return request.auth != null &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    // Imágenes de tiendas (productos, servicios, galería)
+    match /tiendas/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuth() && request.auth.uid == userId && isImage();
+    }
+
+    // Imágenes de perfil de usuario
+    match /perfiles/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuth() && request.auth.uid == userId && isImage();
+    }
+
+    // Recursos de administración (banners, carrusel, etc.)
+    match /admin/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage();
+    }
+  }
+}

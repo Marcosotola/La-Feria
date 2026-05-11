@@ -93,7 +93,7 @@ export default function InstallPrompt() {
                         <img src="/icon-192.png" alt="Logo" className="w-12 h-12" />
                     </div>
 
-                    <h3 className="text-xl font-bold mb-1">Instala App Family Market</h3>
+                    <h3 className="text-xl font-bold mb-1">Instala App La Feria</h3>
                     <p className="text-blue-100 text-sm">
                         La mejor experiencia de compra en tu dispositivo
                     </p>

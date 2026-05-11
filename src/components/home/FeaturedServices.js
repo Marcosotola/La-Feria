@@ -76,7 +76,7 @@ export default function FeaturedServices() {
   const handleServiceClick = (service) => {
     const storeSlug = service.tiendaInfo?.slug || service.storeData?.storeSlug;
     if (storeSlug && service.id) {
-      const url = `https://familymarket.vercel.app/tienda/${storeSlug}/servicio/${service.id}`;
+      const url = `https://laferia.vercel.app/tienda/${storeSlug}/servicio/${service.id}`;
       window.open(url, '_blank');
     } else {
       console.error('Faltan datos para la navegación:', { storeSlug, serviceId: service.id });

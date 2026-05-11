@@ -98,7 +98,7 @@ function PaymentSuccessContent() {
 
         <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Gracias por tu contribución a Family Market
+            Gracias por tu contribución a La Feria
           </p>
         </div>
       </div>

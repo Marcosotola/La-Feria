@@ -54,7 +54,7 @@ export default function ProductManager({ storeId, storeData }) {
     }
 
     return {
-      nombre: 'Tienda Family Market',
+      nombre: 'Tienda La Feria',
       slug: '',
       email: '',
       phone: ''

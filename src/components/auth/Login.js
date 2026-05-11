@@ -199,14 +199,17 @@ export default function Login({ onSwitchToRegister }) {
           {/* Logo de la aplicación */}
           <div className="w-16 h-16  rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Image
-              src="/icon.png"
-              alt="Family Market Logo"
+              src="/logos/logo.png"
+              alt="La Feria Logo"
               width={40}
               height={40}
               className="w-12 h-12"
             />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Family Market</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            <span className="text-brand-teal-500">La</span>{' '}
+            <span className="text-primary-500">Feria</span>
+          </h1>
           <p className="text-gray-600 dark:text-gray-400">Bienvenido de vuelta</p>
         </div>
 

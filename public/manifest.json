@@ -1,6 +1,6 @@
 {
-  "name": "Family Market",
-  "short_name": "FamilyMarket",
+  "name": "La Feria",
+  "short_name": "La Feria",
   "description": "Tu mercado familiar en línea",
   "start_url": "/",
   "display": "standalone",

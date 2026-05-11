@@ -41,7 +41,7 @@ export default function StoreInfoCard() {
   };
 
   const storeSlug = getStoreSlug();
-  const storeUrl = `familymarket.vercel.app/tienda/${storeSlug}`;
+  const storeUrl = `laferia.vercel.app/tienda/${storeSlug}`;
   const fullStoreUrl = `https://${storeUrl}`;
   
   // Generar URL del QR con colores personalizados

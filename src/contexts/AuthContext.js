@@ -156,7 +156,7 @@ export const AuthProvider = ({ children }) => {
       
       return { 
         success: true, 
-        message: `¡Cuenta creada exitosamente! Tu tienda estará disponible en: familymarket.com/tienda/${storeSlug}\n\nPor favor verifica tu email antes de continuar.`
+        message: `¡Cuenta creada exitosamente! Tu tienda estará disponible en: laferia.com/tienda/${storeSlug}\n\nPor favor verifica tu email antes de continuar.`
       };
     } catch (error) {
       throw error;

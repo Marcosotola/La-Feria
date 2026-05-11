@@ -2,7 +2,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-const CACHE_NAME = 'family-market-v1';
+const CACHE_NAME = 'la-feria-v1';
 
 const urlsToCache = [
   '/',
@@ -11,15 +11,13 @@ const urlsToCache = [
   '/icon-512.png'
 ];
 
-// CONFIGURACIÓN COMPLETA DE FIREBASE (faltaba measurementId)
 const firebaseConfig = {
-  apiKey: "AIzaSyDptJ7MH9xcrWCal4X38OU9FDbokm0vIP8",
-  authDomain: "familymarket-b9da2.firebaseapp.com",
-  projectId: "familymarket-b9da2",
-  storageBucket: "familymarket-b9da2.firebasestorage.app",
-  messagingSenderId: "330651711838",
-  appId: "1:330651711838:web:3d13f351aa64edf78b37cf",
-  measurementId: "G-5DC7915W5R"  // ESTA LÍNEA FALTABA
+  apiKey: "AIzaSyCi8RTNdmzldnW_zlT4iZB8b4iEZak-VpU",
+  authDomain: "la-feria-14a63.firebaseapp.com",
+  projectId: "la-feria-14a63",
+  storageBucket: "la-feria-14a63.firebasestorage.app",
+  messagingSenderId: "110375857205",
+  appId: "1:110375857205:web:4b94219bb4dcc8a8f1d57c"
 };
 
 // Inicializar Firebase
@@ -105,12 +103,12 @@ self.addEventListener('fetch', event => {
 messaging.onBackgroundMessage(function(payload) {
   console.log('Mensaje recibido en segundo plano:', payload);
   
-  const notificationTitle = payload.notification?.title || 'Family Market';
+  const notificationTitle = payload.notification?.title || 'La Feria';
   const notificationOptions = {
     body: payload.notification?.body || 'Tienes una nueva notificación',
     icon: '/icon-192.png',
     badge: '/icon-192.png',
-    tag: 'family-market-notification',
+    tag: 'la-feria-notification',
     data: payload.data || {},
     vibrate: [200, 100, 200],
     requireInteraction: false,

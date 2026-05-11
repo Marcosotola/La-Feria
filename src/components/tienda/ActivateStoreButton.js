@@ -143,7 +143,7 @@ export default function ActivateStoreButton({ className = '' }) {
                 <h2 className="text-2xl font-bold">Tienda Pública</h2>
               </div>
               <p className="text-orange-100 text-sm">
-                Activa tu tienda profesional en Family Market
+                Activa tu tienda profesional en La Feria
               </p>
             </div>
 

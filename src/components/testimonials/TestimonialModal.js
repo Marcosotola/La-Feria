@@ -271,7 +271,7 @@ export default function TestimonialModal({
                 rows={4}
                 value={formData.testimonial}
                 onChange={(e) => setFormData({ ...formData, testimonial: e.target.value })}
-                placeholder="Comparte tu experiencia con Family Market..."
+                placeholder="Comparte tu experiencia con La Feria..."
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none
                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
                   ${errors.testimonial 
@@ -295,7 +295,7 @@ export default function TestimonialModal({
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <p className="text-sm text-blue-800 dark:text-blue-300">
                 Tu testimonio será visible públicamente con tu nombre y el logo de tu tienda.
-                Ayudará a otros miembros de la comunidad a conocer Family Market.
+                Ayudará a otros miembros de la comunidad a conocer La Feria.
               </p>
             </div>
             

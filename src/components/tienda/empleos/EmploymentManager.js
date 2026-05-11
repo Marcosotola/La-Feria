@@ -56,7 +56,7 @@ export default function EmploymentManager({ storeId, storeData }) {
     }
 
     return {
-      nombre: 'Tienda Family Market',
+      nombre: 'Tienda La Feria',
       slug: '',
       email: '',
       phone: ''

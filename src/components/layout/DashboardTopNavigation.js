@@ -215,7 +215,7 @@ export default function DashboardTopNavigation() {
             {/* Ver Tienda */}
             {storeUrl && (
               <a
-                href={`https://familymarket.vercel.app/tienda/${storeUrl}`}
+                href={`https://laferia.vercel.app/tienda/${storeUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg text-sm font-medium transition-colors ml-4 flex-shrink-0 cursor-pointer"
@@ -257,7 +257,7 @@ export default function DashboardTopNavigation() {
             {/* Ver Tienda */}
             {storeUrl && (
               <a
-                href={`https://familymarket.vercel.app/tienda/${storeUrl}`}
+                href={`https://laferia.vercel.app/tienda/${storeUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-3 flex items-center gap-1 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg text-xs font-medium transition-colors flex-shrink-0 cursor-pointer"
@@ -296,7 +296,7 @@ export default function DashboardTopNavigation() {
             {/* Ver Tienda */}
             {storeUrl && (
               <a
-                href={`https://familymarket.vercel.app/tienda/${storeUrl}`}
+                href={`https://laferia.vercel.app/tienda/${storeUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-3 flex items-center gap-1.5 px-3 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg text-xs font-medium transition-colors cursor-pointer"

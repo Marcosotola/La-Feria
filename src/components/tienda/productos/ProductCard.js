@@ -106,7 +106,7 @@ export default function ProductCard({
 
   const handleViewStore = (e) => {
     e.stopPropagation();
-    const storeUrl = `https://familymarket.vercel.app/tienda/${product.tiendaInfo?.slug || storeData?.storeSlug}`;
+    const storeUrl = `https://laferia.vercel.app/tienda/${product.tiendaInfo?.slug || storeData?.storeSlug}`;
     window.open(storeUrl, '_blank');
   };
 

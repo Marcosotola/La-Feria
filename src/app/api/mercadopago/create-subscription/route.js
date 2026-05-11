@@ -32,7 +32,7 @@ export async function POST(request) {
     console.log('🔑 Using TEST credentials:', isTestMode);
 
     // Asegurar que la URL no tenga barra final
-    let baseUrl = process.env.NEXT_PUBLIC_URL || 'https://familymarket.vercel.app';
+    let baseUrl = process.env.NEXT_PUBLIC_URL || 'https://laferia.vercel.app';
     baseUrl = baseUrl.replace(/\/$/, ''); // Eliminar barra final si existe
     
     const isLocalDev = baseUrl.includes('localhost');
@@ -47,7 +47,7 @@ export async function POST(request) {
     startDate.setHours(0, 0, 0, 0); // Inicio del día actual
     
     const subscriptionData = {
-      reason: 'Suscripción Tienda Online - Family Market',
+      reason: 'Suscripción Tienda Online - La Feria',
       auto_recurring: {
         frequency: 1,
         frequency_type: 'months',

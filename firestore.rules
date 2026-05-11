@@ -1,0 +1,140 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ===== USUARIOS =====
+    match /users/{userId} {
+      allow read: if isAuth();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId}/comments/{commentId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.authorId || isAdmin());
+    }
+
+    // ===== PRODUCTOS =====
+    match /productos/{productoId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.storeId || isAdmin());
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.storeId || isAdmin());
+    }
+
+    // ===== SERVICIOS =====
+    match /servicios/{servicioId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.storeId || isAdmin());
+    }
+
+    // ===== EMPLEOS =====
+    match /empleos/{empleoId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
+    }
+
+    match /busquedasEmpleo/{busquedaId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
+    }
+
+    // ===== RESERVAS =====
+    match /reservas/{reservaId} {
+      allow read: if isAuth() && (request.auth.uid == resource.data.clienteId || isAdmin());
+      allow create: if isAuth();
+      allow update: if isAuth() && (request.auth.uid == resource.data.clienteId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // ===== TESTIMONIOS =====
+    match /testimonios/{testimonioId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
+    }
+
+    // ===== VALORACIONES =====
+    match /valoraciones/{valoracionId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
+    }
+
+    match /valoraciones_servicios/{valoracionId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
+    }
+
+    // ===== COMENTARIOS =====
+    match /comentarios/{comentarioId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
+    }
+
+    match /comentarios_servicios/{comentarioId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
+    }
+
+    match /comentarios_empleos/{comentarioId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
+    }
+
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
+    }
+
+    // ===== GALERÍA =====
+    match /galeria/{galeriaId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.storeId || isAdmin());
+    }
+
+    // ===== FAVORITOS =====
+    match /favorites/{favoriteId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.usuarioId;
+      allow create: if isAuth() && request.auth.uid == request.resource.data.usuarioId;
+      allow delete: if isAuth() && request.auth.uid == resource.data.usuarioId;
+    }
+
+    // ===== NOTIFICACIONES =====
+    match /notifications/{notificationId} {
+      allow read: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
+      allow create: if isAdmin();
+      allow update: if isAuth() && request.auth.uid == resource.data.usuarioId;
+      allow delete: if isAdmin();
+    }
+  }
+}

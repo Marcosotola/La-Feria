@@ -4,7 +4,12 @@
 
 /* ========== CONFIGURACIÓN TAILWIND V4 ========== */
 @theme {
-  /* Colores personalizados para Family Market */
+  /* Colores personalizados para La Feria */
+  /* Colores de marca La Feria */
+  --color-brand-teal-400: #2a7d9c;
+  --color-brand-teal-500: #1B607A;
+  --color-brand-teal-600: #164f66;
+
   --color-primary-50: #fff7ed;
   --color-primary-100: #ffedd5;
   --color-primary-200: #fed7aa;

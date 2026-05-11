@@ -27,10 +27,10 @@ export default function RootLayout({ children }) {
     <html lang="es" suppressHydrationWarning>
       <head>
         {/* PWA Meta Tags */}
-        <meta name="application-name" content="Family Market" />
+        <meta name="application-name" content="La Feria" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Family Market" />
+        <meta name="apple-mobile-web-app-title" content="La Feria" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
@@ -47,8 +47,8 @@ export default function RootLayout({ children }) {
 
         {/* Open Graph / Social Media */}
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Family Market" />
-        <meta property="og:title" content="Family Market - Tienda Local" />
+        <meta property="og:site_name" content="La Feria" />
+        <meta property="og:title" content="La Feria - Tienda Local" />
         <meta property="og:description" content="Tu mercado local online para productos y servicios de confianza." />
         <meta property="og:image" content="/icon-512.png" />
       </head>
@@ -56,10 +56,10 @@ export default function RootLayout({ children }) {
         <ThemeProvider attribute="class" defaultTheme={isStorePage ? "light" : "system"} enableSystem={!isStorePage}>
           <AuthProvider>
             {isStorePage ? (
-              // Para páginas de tienda: solo el contenido sin layout de Family Market
+              // Para páginas de tienda: solo el contenido sin layout de La Feria
               children
             ) : (
-              // Para páginas de Family Market: layout completo
+              // Para páginas de La Feria: layout completo
               <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
                 {/* Header */}
                 <Header />

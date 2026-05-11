@@ -121,7 +121,7 @@ export default function FavoritesSection() {
   };
 
   const handleViewItem = (favorite) => {
-    const baseUrl = 'https://familymarket.vercel.app';
+    const baseUrl = 'https://laferia.vercel.app';
     let url = '';
     
     if (favorite.itemType === 'product') {

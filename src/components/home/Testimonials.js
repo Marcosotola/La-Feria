@@ -32,7 +32,7 @@ const showNotification = (message, type = 'info') => {
 
 export default function Testimonials({ 
   title = "Lo que dice nuestra comunidad",
-  subtitle = "Historias reales de hermanos que han encontrado bendición a través de Family Market",
+  subtitle = "Historias reales de hermanos que han encontrado bendición a través de La Feria",
   showAddButton = true,
   limit = 6,
   featuredOnly = false

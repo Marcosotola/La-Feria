@@ -63,7 +63,7 @@ export async function POST(request) {
     }
 
     // URL base
-    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://familymarket.vercel.app';
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://laferia.vercel.app';
     console.log('🌐 Using base URL:', baseUrl);
 
     const preference = new Preference(client);
@@ -81,11 +81,11 @@ export async function POST(request) {
     // Descripción según el tipo
     let description;
     if (itemType === 'employment') {
-      description = `Destacar publicación de empleo por 7 días en Family Market`;
+      description = `Destacar publicación de empleo por 7 días en La Feria`;
     } else if (itemType === 'service') {
-      description = `Destacar servicio por 7 días en Family Market`;
+      description = `Destacar servicio por 7 días en La Feria`;
     } else {
-      description = `Destacar producto por 7 días en Family Market`;
+      description = `Destacar producto por 7 días en La Feria`;
     }
 
     const preferenceData = {
@@ -109,7 +109,7 @@ export async function POST(request) {
       // External reference con formato: tipo_id_userId
       external_reference: `${itemType}_${itemId}_${userId}`,
       payer: {
-        name: userName || 'Usuario Family Market'
+        name: userName || 'Usuario La Feria'
       },
       metadata: {
         item_id: itemId,

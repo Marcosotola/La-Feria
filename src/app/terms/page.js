@@ -2,8 +2,8 @@
 import { Shield, Users, Store, Bell, Lock, Mail } from 'lucide-react';
 
 export const metadata = {
-  title: 'Términos y Condiciones - Family Market',
-  description: 'Términos y condiciones de uso de Family Market - Mercado comunitario de la iglesia TTL'
+  title: 'Términos y Condiciones - La Feria',
+  description: 'Términos y condiciones de uso de La Feria - Mercado comunitario de la iglesia TTL'
 }
 
 export default function TermsPage() {
@@ -18,7 +18,7 @@ export default function TermsPage() {
           Términos y Condiciones
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Family Market - Mercado comunitario de la iglesia "Toma Tu Lugar"
+          La Feria - Mercado comunitario de la iglesia "Toma Tu Lugar"
         </p>
         <p className="text-sm text-gray-500 mt-2">
           Última actualización: Septiembre 2025
@@ -32,10 +32,10 @@ export default function TermsPage() {
         <div className="bg-primary-50 border border-primary-200 rounded-lg p-6 mb-8">
           <h2 className="text-2xl font-semibold text-primary-800 mb-4 flex items-center">
             <Users className="w-6 h-6 mr-2" />
-            Bienvenido a Family Market
+            Bienvenido a La Feria
           </h2>
           <p className="text-primary-700 mb-0">
-            Family Market es una plataforma comunitaria diseñada exclusivamente para los miembros de la iglesia "Toma Tu Lugar" (TTL). 
+            La Feria es una plataforma comunitaria diseñada exclusivamente para los miembros de la iglesia "Toma Tu Lugar" (TTL). 
             Nuestro propósito es fomentar la conexión, el apoyo mutuo y el crecimiento de emprendimientos dentro de nuestra comunidad de fe.
           </p>
         </div>
@@ -95,7 +95,7 @@ export default function TermsPage() {
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
             <h3 className="text-lg font-medium text-yellow-800 mb-3">Importante</h3>
             <ul className="space-y-2 text-yellow-700">
-              <li>• <strong>Family Market es solo una plataforma de conexión:</strong> No somos parte de las transacciones comerciales</li>
+              <li>• <strong>La Feria es solo una plataforma de conexión:</strong> No somos parte de las transacciones comerciales</li>
               <li>• <strong>Responsabilidad directa:</strong> Las transacciones se realizan directamente entre los miembros</li>
               <li>• <strong>Resolución de conflictos:</strong> Los desacuerdos deben resolverse según los principios bíblicos de reconciliación</li>
               <li>• <strong>Calidad y garantías:</strong> Cada vendedor es responsable de la calidad de sus productos/servicios</li>
@@ -167,7 +167,7 @@ export default function TermsPage() {
             <h3 className="text-lg font-medium text-orange-800 mb-3">Estados de Cuenta</h3>
             <ul className="space-y-2 text-orange-700">
               <li>• <strong>Pendiente:</strong> Cuenta nueva esperando validación administrativa</li>
-              <li>• <strong>Validada:</strong> Cuenta verificada por un administrador de Family Market</li>
+              <li>• <strong>Validada:</strong> Cuenta verificada por un administrador de La Feria</li>
               <li>• <strong>Participación durante validación:</strong> Puedes publicar y participar mientras tu cuenta está pendiente</li>
               <li>• <strong>Indicador visible:</strong> El estado de validación será visible para otros usuarios</li>
               <li>• <strong>Proceso de validación:</strong> Los administradores verificarán tu pertenencia al hogar indicado</li>
@@ -217,7 +217,7 @@ export default function TermsPage() {
               Para consultas, soporte técnico o reportar problemas, puedes contactarnos a través de:
             </p>
             <ul className="space-y-2 text-primary-700">
-              <li>• <strong>Email de soporte:</strong> soporte@familymarket-ttl.com</li>
+              <li>• <strong>Email de soporte:</strong> soporte@laferia-ttl.com</li>
               <li>• <strong>Administradores de la iglesia TTL</strong></li>
               <li>• <strong>Sistema de comentarios</strong> dentro de la plataforma</li>
             </ul>
@@ -226,7 +226,7 @@ export default function TermsPage() {
 
         {/* Conclusión */}
         <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">¡Gracias por ser parte de Family Market!</h2>
+          <h2 className="text-2xl font-bold mb-4">¡Gracias por ser parte de La Feria!</h2>
           <p className="text-primary-100 mb-4">
             Al aceptar estos términos, te unes a una comunidad comprometida con los valores cristianos, 
             el apoyo mutuo y el crecimiento conjunto en la fe.
@@ -239,7 +239,7 @@ export default function TermsPage() {
         {/* Footer legal */}
         <div className="mt-8 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
           <p>
-            Family Market © 2025 - Iglesia "Toma Tu Lugar" | 
+            La Feria © 2025 - Iglesia "Toma Tu Lugar" | 
             Desarrollado con ❤️ para nuestra comunidad de fe
           </p>
           <p className="mt-2">

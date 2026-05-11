@@ -16,11 +16,11 @@ export async function generateMetadata({ params }) {
 
     const product = productDoc.data();
     const title = product.titulo || product.nombre || 'Producto';
-    const description = product.descripcion?.substring(0, 160) || 'Detalles del producto en Family Market';
+    const description = product.descripcion?.substring(0, 160) || 'Detalles del producto en La Feria';
     const image = product.imagenes?.[0] || '/icon-512.png';
 
     return {
-      title: `${title} - Family Market`,
+      title: `${title} - La Feria`,
       description,
       openGraph: {
         title,
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }) {
   } catch (error) {
     console.error('Error generating metadata:', error);
     return {
-      title: 'Family Market',
+      title: 'La Feria',
     };
   }
 }

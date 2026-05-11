@@ -134,7 +134,7 @@ export default function FeaturedProducts() {
   const handleProductClick = (product) => {
     const storeSlug = product.tiendaInfo?.slug || product.storeData?.storeSlug;
     if (storeSlug && product.id) {
-      const url = `https://familymarket.vercel.app/tienda/${storeSlug}/producto/${product.id}`;
+      const url = `https://laferia.vercel.app/tienda/${storeSlug}/producto/${product.id}`;
       window.open(url, '_blank');
     }
   };
