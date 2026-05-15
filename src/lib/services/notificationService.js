@@ -89,18 +89,40 @@ class NotificationService {
         return null;
       }
 
+      if (!('serviceWorker' in navigator)) {
+        console.warn('⚠️ Service Workers no soportados en este navegador');
+        return null;
+      }
+
+      // Registrar el SW y esperar a que esté ACTIVO antes de pasárselo a Firebase.
+      // pushManager.subscribe() falla si el SW no está en estado 'activated'.
+      let swRegistration;
+      try {
+        await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
+        // navigator.serviceWorker.ready resuelve cuando hay un SW activo para esta página
+        swRegistration = await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('SW activation timeout')), 12000)
+          )
+        ]);
+      } catch (swError) {
+        console.warn('⚠️ No se pudo activar el Service Worker:', swError.message);
+        return null;
+      }
+
       const token = await getToken(this.messaging, {
-        vapidKey: this.vapidKey
+        vapidKey: this.vapidKey,
+        serviceWorkerRegistration: swRegistration
       });
 
       if (token) {
         console.log('🔑 Token FCM obtenido exitosamente');
-        console.log('Token:', token.substring(0, 50) + '...');
         return token;
-      } else {
-        console.warn('⚠️ No se pudo obtener el token FCM');
-        return null;
       }
+
+      console.warn('⚠️ No se pudo obtener el token FCM');
+      return null;
     } catch (error) {
       console.error('❌ Error obteniendo token FCM:', error);
       return null;

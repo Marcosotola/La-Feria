@@ -3,10 +3,9 @@
 
 import { usePathname } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
-import { 
-  User, 
-  Image, 
-  Settings,
+import {
+  User,
+  Image,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -30,13 +29,6 @@ const ProfileNavBadges = ({ activeSection, setActiveSection }) => {
       icon: Image,
       color: 'purple',
       description: 'Cambiar imagen'
-    },
-    {
-      id: 'account',
-      name: 'Configuración',
-      icon: Settings,
-      color: 'green',
-      description: 'Ajustes de cuenta'
     }
   ];
 

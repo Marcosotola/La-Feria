@@ -22,10 +22,13 @@ export default function PersonalInfoSection({ showMessage }) {
 
   useEffect(() => {
     if (userData) {
+      // Mostrar solo el número local (sin el +549 que guarda el sistema)
+      const rawPhone = userData.phone || ''
+      const localPhone = rawPhone.startsWith('+549') ? rawPhone.slice(4) : rawPhone
       setFormData({
         firstName: userData.firstName || '',
         lastName: userData.lastName || '',
-        phone: userData.phone || '',
+        phone: localPhone,
         address: userData.address || '',
         city: userData.city || ''
       });
@@ -51,6 +54,8 @@ export default function PersonalInfoSection({ showMessage }) {
 
       await updateDoc(doc(db, 'users', user.uid), {
         ...formData,
+        // Guardar siempre con el prefijo +549 para mensajes automáticos
+        phone: formData.phone ? `+549${formData.phone}` : '',
         updatedAt: new Date()
       });
 
@@ -108,14 +113,26 @@ export default function PersonalInfoSection({ showMessage }) {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Teléfono
             </label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              placeholder="+54 9 11 1234-5678"
-            />
+            <div className="flex rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600 focus-within:ring-2 focus-within:ring-primary-500">
+              <span className="px-3 py-2 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 text-sm font-mono border-r border-gray-300 dark:border-gray-600 flex items-center select-none">
+                +549
+              </span>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '')
+                  setFormData(prev => ({ ...prev, phone: digits }))
+                }}
+                className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none"
+                placeholder="3511234567 (sin 0, sin 15)"
+                maxLength={10}
+              />
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1 px-1">
+              Cod. área + número sin el 0 inicial ni el 15 (ej: <span className="font-mono">3511234567</span>)
+            </p>
           </div>
 
           <div>

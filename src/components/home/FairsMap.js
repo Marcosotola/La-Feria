@@ -34,21 +34,23 @@ export default function FairsMap() {
   }
 
   return (
+    <div className="w-full">
+      {/* Título de la sección */}
+      <div className="mb-3 md:mb-4">
+        <h2 className="font-black text-gray-900 dark:text-white text-xl md:text-2xl flex items-center gap-2">
+          <MapPin className="w-5 h-5 md:w-6 md:h-6 text-primary-500 shrink-0" />
+          Mapa de Ferias
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 ml-7 mt-0.5">
+          Tocá un pin para ver detalles
+        </p>
+      </div>
+
     <div className="relative w-full h-[350px] md:h-[550px] rounded-[2.5rem] md:rounded-[3rem] shadow-2xl border-2 md:border-4 border-white dark:border-gray-800 z-20 bg-gray-100 dark:bg-gray-900 transition-all duration-500">
-      
+
       {/* Contenedor del Mapa (Clipped) */}
       <div className="absolute inset-0 rounded-[2.3rem] md:rounded-[2.8rem] overflow-hidden">
         {mounted && <MapInner onSelect={setSelectedFair} fairs={fairs} />}
-      </div>
-
-      {/* Overlay informativo (Movido arriba para no estorbar) */}
-      <div className={`absolute top-4 left-4 md:top-6 md:left-6 z-[1000] bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-3 md:p-4 rounded-2xl shadow-xl border border-white/20 transition-all duration-300 ${selectedFair ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'}`}>
-        <h4 className="font-black text-gray-900 dark:text-white text-[10px] md:text-xs mb-1 uppercase tracking-wider flex items-center gap-2">
-          <MapPin className="w-3 h-3 text-primary-500" /> Mapa de Ferias
-        </h4>
-        <p className="text-[9px] md:text-[10px] text-gray-600 dark:text-gray-400">
-          Toca un pin para ver detalles.
-        </p>
       </div>
 
       {/* CARD DE DETALLES FLOTANTE (Premium Slide-up) */}
@@ -117,6 +119,7 @@ export default function FairsMap() {
           </div>
         </div>
       )}
+    </div>
     </div>
   )
 }

@@ -1,175 +1,166 @@
-// src/app/dashboard/page.js - Dashboard Hub Central
-'use client';
+'use client'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import DashboardTopNavigation from '@/components/layout/DashboardTopNavigation'
+import {
+  User, Heart, MessageSquare, Store,
+  MapPin, ChevronRight, Loader2
+} from 'lucide-react'
 
-import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import DashboardTopNavigation from '@/components/layout/DashboardTopNavigation';
-import { 
-  User, 
-  Heart, 
-  MessageSquare, 
-  Store,
-  Users,
-  Send,
-  ChevronRight
-} from 'lucide-react';
+const ROLE_META = {
+  admin:     { label: 'Administrador',     color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
+  organizer: { label: 'Organizador',       color: 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300' },
+  puestero:  { label: 'Puestero / Feriante', color: 'bg-brand-teal-100 text-brand-teal-700 dark:bg-brand-teal-900/30 dark:text-brand-teal-300' },
+  user:      { label: 'Cliente',           color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' },
+}
 
 export default function Dashboard() {
-  const { isAuthenticated, userData, loading } = useAuth();
-  const router = useRouter();
-  const isAdmin = userData?.role === 'admin';
+  const { isAuthenticated, userData, loading } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isAuthenticated, loading, router]);
+    if (!loading && !isAuthenticated) router.push('/login')
+  }, [isAuthenticated, loading, router])
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Cargando panel...</p>
-        </div>
+        <Loader2 className="w-10 h-10 animate-spin text-primary-500" />
       </div>
-    );
+    )
   }
 
-  if (!isAuthenticated || !userData) {
-    return null;
-  }
+  if (!isAuthenticated || !userData) return null
 
-  // Tarjetas de navegación para usuarios normales
-  const userCards = [
-    {
-      title: 'Mi Perfil',
-      description: 'Gestiona tu información personal y configuración',
-      icon: User,
-      href: '/dashboard/profile',
-      color: 'bg-blue-500',
-      darkColor: 'dark:bg-blue-600'
-    },
-    {
-      title: 'Favoritos',
-      description: 'Accede a tus productos y servicios guardados',
-      icon: Heart,
-      href: '/dashboard/favorites',
-      color: 'bg-pink-500',
-      darkColor: 'dark:bg-pink-600'
-    },
-    {
-      title: 'Mis Reseñas',
-      description: 'Gestiona tus comentarios y valoraciones',
-      icon: MessageSquare,
-      href: '/dashboard/reviews',
-      color: 'bg-purple-500',
-      darkColor: 'dark:bg-purple-600'
-    },
-    {
-      title: 'Mi Tienda',
-      description: 'Administra tu tienda y configuración',
-      icon: Store,
-      href: '/dashboard/store',
-      color: 'bg-green-500',
-      darkColor: 'dark:bg-green-600'
-    }
-  ];
+  const role = userData.role || 'user'
+  const isAdmin     = role === 'admin'
+  const isOrganizer = role === 'organizer' || isAdmin
+  const isPuestero  = role === 'puestero'  || isOrganizer
+  const roleMeta    = ROLE_META[role] ?? ROLE_META.user
 
-  // Tarjetas adicionales para administradores
-  const adminCards = [
-    {
-      title: 'Gestión de Usuarios',
-      description: 'Administra usuarios de la plataforma',
-      icon: Users,
-      href: '/dashboard/users',
-      color: 'bg-indigo-500',
-      darkColor: 'dark:bg-indigo-600'
-    },
-    {
-      title: 'Mensajería',
-      description: 'Envía notificaciones a los usuarios',
-      icon: Send,
-      href: '/dashboard/messaging',
-      color: 'bg-rose-500',
-      darkColor: 'dark:bg-rose-600'
-    }
-  ];
-
-  const allCards = isAdmin ? [...userCards, ...adminCards] : userCards;
+  const firstName = userData.firstName || userData.businessName || userData.email?.split('@')[0] || 'Usuario'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-28">
       <DashboardTopNavigation />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Mi Cuenta
+
+      <div className="max-w-2xl mx-auto px-4 pt-6 pb-10">
+
+        {/* ── Header ── */}
+        <div className="mb-8">
+          <span className={`inline-block text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3 ${roleMeta.color}`}>
+            {roleMeta.label}
+          </span>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white leading-tight">
+            Hola, {firstName} 👋
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Bienvenido, {userData?.firstName || userData?.businessName || userData?.email}
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            ¿Qué querés gestionar hoy?
           </p>
         </div>
 
-        {/* Sección de Usuario */}
-        <div className={isAdmin ? 'mb-8 sm:mb-12' : ''}>
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Gestión Personal
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {userCards.map((card) => (
-              <NavigationCard key={card.href} {...card} router={router} />
-            ))}
-          </div>
-        </div>
-
-        {/* Sección de Administración - solo para admins */}
-        {isAdmin && (
-          <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
-              Panel de Administración
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {adminCards.map((card) => (
-                <NavigationCard key={card.href} {...card} router={router} />
-              ))}
-            </div>
-          </div>
+        {/* ── Ferias — organizer + admin ── */}
+        {isOrganizer && (
+          <DashSection title="Ferias">
+            <DashCard
+              icon={MapPin}
+              color="orange"
+              title="Mis Ferias"
+              description="Creá y gestioná tus ferias"
+              href="/dashboard/organizer"
+              router={router}
+            />
+          </DashSection>
         )}
+
+        {/* ── Comercio — puestero + organizer + admin ── */}
+        {isPuestero && (
+          <DashSection title="Comercio">
+            <DashCard
+              icon={Store}
+              color="teal"
+              title="Mi Tienda"
+              description="Administrá productos, servicios y empleos"
+              href="/dashboard/store"
+              router={router}
+            />
+          </DashSection>
+        )}
+
+        {/* ── Sección Personal — todos ── */}
+        <DashSection title="Personal">
+          <DashCard
+            icon={User}
+            color="blue"
+            title="Mi Perfil"
+            description="Información personal y configuración"
+            href="/dashboard/profile"
+            router={router}
+          />
+          <DashCard
+            icon={Heart}
+            color="pink"
+            title="Favoritos"
+            description="Productos y servicios guardados"
+            href="/dashboard/favorites"
+            router={router}
+          />
+          <DashCard
+            icon={MessageSquare}
+            color="purple"
+            title="Reseñas"
+            description="Tus comentarios y valoraciones"
+            href="/dashboard/reviews"
+            router={router}
+          />
+        </DashSection>
+
       </div>
     </div>
-  );
+  )
 }
 
-// Componente de tarjeta de navegación
-function NavigationCard({ title, description, icon: Icon, href, color, darkColor, router }) {
+// ── Sección con título separador ──────────────────────────────────────────────
+function DashSection({ title, children }) {
+  return (
+    <div className="mb-8">
+      <h2 className="text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 px-1">
+        {title}
+      </h2>
+      <div className="space-y-2.5">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+// ── Card horizontal mobile-first ──────────────────────────────────────────────
+const CARD_COLORS = {
+  blue:   { bg: 'bg-blue-500',         light: 'bg-blue-50   dark:bg-blue-900/20'   },
+  pink:   { bg: 'bg-pink-500',         light: 'bg-pink-50   dark:bg-pink-900/20'   },
+  purple: { bg: 'bg-purple-500',       light: 'bg-purple-50 dark:bg-purple-900/20' },
+  teal:   { bg: 'bg-brand-teal-600',   light: 'bg-brand-teal-50 dark:bg-brand-teal-900/20' },
+  orange: { bg: 'bg-primary-500',      light: 'bg-primary-50 dark:bg-primary-900/20' },
+  indigo: { bg: 'bg-indigo-500',       light: 'bg-indigo-50 dark:bg-indigo-900/20' },
+  rose:   { bg: 'bg-rose-500',         light: 'bg-rose-50   dark:bg-rose-900/20'   },
+}
+
+function DashCard({ icon: Icon, color, title, description, href, router }) {
+  const c = CARD_COLORS[color] ?? CARD_COLORS.blue
   return (
     <button
       onClick={() => router.push(href)}
-      className="group relative bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 p-4 sm:p-6 text-left border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+      className="w-full flex items-center gap-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm hover:shadow-md active:scale-[0.98] transition-all text-left"
     >
-      {/* Icono */}
-      <div className={`${color} ${darkColor} w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-200`}>
-        <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+      <div className={`w-12 h-12 ${c.bg} rounded-xl flex items-center justify-center shrink-0 shadow-sm`}>
+        <Icon className="w-6 h-6 text-white" />
       </div>
-
-      {/* Contenido */}
-      <div className="mb-3 sm:mb-4">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-          {title}
-        </h3>
-        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-          {description}
-        </p>
+      <div className="flex-1 min-w-0">
+        <p className="font-black text-gray-900 dark:text-white text-sm leading-tight">{title}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{description}</p>
       </div>
-
-      {/* Flecha */}
-      <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6">
-        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 group-hover:translate-x-1 transition-all duration-200" />
-      </div>
+      <ChevronRight className="w-4 h-4 text-gray-300 dark:text-gray-600 shrink-0" />
     </button>
-  );
+  )
 }

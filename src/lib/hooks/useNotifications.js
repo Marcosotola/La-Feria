@@ -11,35 +11,32 @@ export function useNotifications() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let unsubscribeMessages = null;
+
     const initializeNotifications = async () => {
       setIsLoading(true);
-      
-      // Verificar soporte
-      const supported = notificationService.isSupported();
+
+      // isSupported() es async — hay que esperarla
+      const supported = await notificationService.isSupported();
       setIsSupported(supported);
-      
+
       if (!supported) {
         setIsLoading(false);
         return;
       }
 
-      // Verificar permisos actuales
       if ('Notification' in window) {
-        const currentPermission = Notification.permission;
-        setPermission(currentPermission);
+        setPermission(Notification.permission);
       }
 
-      // Inicializar Firebase Messaging solo si hay permisos
       if (Notification.permission === 'granted') {
         const initialized = await notificationService.initialize();
-        
+
         if (!initialized) {
-          console.warn('No se pudo inicializar Firebase Messaging');
           setIsLoading(false);
           return;
         }
 
-        // Obtener token existente
         try {
           const currentToken = await notificationService.getToken();
           setToken(currentToken);
@@ -47,28 +44,24 @@ export function useNotifications() {
           console.warn('Error obteniendo token existente:', error);
         }
 
-        // Escuchar mensajes en primer plano
-        try {
-          notificationService.onMessageListener().then((payload) => {
-            console.log('Mensaje recibido:', payload);
-            // Mostrar notificación local si la app está en primer plano
-            notificationService.showLocalNotification(
-              payload.notification?.title || 'Nueva notificación',
-              payload.notification?.body || '',
-              {
-                data: payload.data
-              }
-            );
-          });
-        } catch (error) {
-          console.warn('Error configurando listener de mensajes:', error);
-        }
+        // onMessageListener devuelve unsubscribe (no es una Promise)
+        unsubscribeMessages = notificationService.onMessageListener((payload) => {
+          notificationService.showLocalNotification(
+            payload.notification?.title || 'Nueva notificación',
+            payload.notification?.body || '',
+            { data: payload.data }
+          );
+        });
       }
 
       setIsLoading(false);
     };
 
     initializeNotifications();
+
+    return () => {
+      if (unsubscribeMessages) unsubscribeMessages();
+    };
   }, []);
 
   // Solicitar permisos

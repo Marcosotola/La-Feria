@@ -6,7 +6,8 @@ import { useRouter, usePathname } from 'next/navigation'
 import {
   Home, Heart, Grid3X3, X, Package, Briefcase, ChevronLeft,
   ChevronRight, User, LogOut, Store, ShoppingBag, Star,
-  MessageSquare, Users, LayoutDashboard, Settings, Shield
+  MessageSquare, Users, LayoutDashboard, Settings, Shield,
+  MapPin, Share2, Download
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { CATEGORIAS_PRODUCTOS, CATEGORIAS_SERVICIOS, CATEGORIAS_EMPLEO } from '@/types'
@@ -31,6 +32,8 @@ export default function MobileNavigation() {
   const [selectedMainCategory, setSelectedMainCategory] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [showSubcategories, setShowSubcategories] = useState(false)
+  const [installPrompt, setInstallPrompt] = useState(null)
+  const [isInstalled, setIsInstalled] = useState(false)
 
   // Sincronizar pestaña activa con la ruta actual
   useEffect(() => {
@@ -49,9 +52,19 @@ export default function MobileNavigation() {
     }
   }, [pathname])
 
+  // PWA install
+  useEffect(() => {
+    const handler = (e) => { e.preventDefault(); setInstallPrompt(e) }
+    window.addEventListener('beforeinstallprompt', handler)
+    if (window.matchMedia('(display-mode: standalone)').matches) setIsInstalled(true)
+    window.addEventListener('appinstalled', () => { setIsInstalled(true); setInstallPrompt(null) })
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
   // DESPUÉS DE LOS HOOKS, LAS CONDICIONES
   const isDashboardRoute = pathname?.startsWith('/dashboard')
   const isAdmin = userData?.role === 'admin'
+  const isOrganizer = isAdmin || userData?.role === 'organizer'
 
   const navItems = [
     {
@@ -114,85 +127,6 @@ export default function MobileNavigation() {
       href: '/empleos'
     }
   ]
-
-  // Opciones del menú de usuario
-  const userMenuSections = [
-    {
-      section: 'Dashboard',
-      items: [
-        {
-          id: 'dashboard',
-          label: 'Mi Cuenta',
-          icon: LayoutDashboard,
-          href: '/dashboard',
-          description: 'Vista general',
-          color: 'purple'
-        }
-      ]
-    },
-    {
-      section: 'Personal',
-      items: [
-        {
-          id: 'profile',
-          label: 'Perfil',
-          icon: User,
-          href: '/dashboard/profile',
-          description: 'Información personal',
-          color: 'blue'
-        },
-        {
-          id: 'favorites',
-          label: 'Favoritos',
-          icon: Heart,
-          href: '/dashboard/favorites',
-          description: 'Productos guardados',
-          color: 'pink'
-        },
-        {
-          id: 'reviews',
-          label: 'Reseñas',
-          icon: Star,
-          href: '/dashboard/reviews',
-          description: 'Tus comentarios',
-          color: 'yellow'
-        }
-      ]
-    },
-    {
-      section: 'Tienda',
-      items: [
-        {
-          id: 'store',
-          label: 'Mi Tienda',
-          icon: Store,
-          href: '/dashboard/store',
-          description: 'Gestiona tu negocio',
-          color: 'orange'
-        }
-      ]
-    }
-  ]
-
-  // Opciones adicionales para admin
-  const adminMenuSection = {
-    section: 'Administración',
-    items: [
-      {
-        id: 'admin',
-        label: 'Panel Admin',
-        icon: Shield,
-        href: '/admin',
-        description: 'Gestión del sistema',
-        color: 'indigo'
-      }
-    ]
-  }
-
-  // Si es admin, agregar opciones de admin
-  const finalUserMenuSections = isAdmin
-    ? [...userMenuSections, adminMenuSection]
-    : userMenuSections
 
   const handleTabClick = (itemId) => {
     if (itemId === 'categories') {
@@ -310,6 +244,22 @@ export default function MobileNavigation() {
   const handleUserMenuNavigation = (href) => {
     router.push(href)
     setShowUserModal(false)
+  }
+
+  const handleShare = async () => {
+    const url = window.location.origin
+    if (navigator.share) {
+      try { await navigator.share({ title: 'La Feria', text: 'Encontrá ferias, tiendas y productos cerca tuyo', url }) } catch {}
+    } else {
+      await navigator.clipboard.writeText(url)
+    }
+  }
+
+  const handleInstall = async () => {
+    if (!installPrompt) return
+    installPrompt.prompt()
+    const result = await installPrompt.userChoice
+    if (result.outcome === 'accepted') { setInstallPrompt(null); setIsInstalled(true) }
   }
 
   const getSubcategoryName = (subcategoriaKey) => {
@@ -461,84 +411,128 @@ export default function MobileNavigation() {
     )
   }
 
+  const iconColors = {
+    purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+    orange: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
+    teal:   'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400',
+    pink:   'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400',
+    yellow: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400',
+  }
+
+  const userMenuItems = [
+    { id: 'dashboard', label: 'Mi Cuenta',  desc: 'Panel principal',      icon: LayoutDashboard, href: '/dashboard',           color: 'purple', show: true        },
+    { id: 'ferias',    label: 'Mi Feria',   desc: 'Gestionar tus ferias', icon: MapPin,           href: '/dashboard/organizer', color: 'orange', show: isOrganizer },
+    { id: 'store',     label: 'Mi Tienda',  desc: 'Tu espacio de ventas', icon: Store,            href: '/dashboard/store',     color: 'teal',   show: true        },
+    { id: 'favorites', label: 'Favoritos',  desc: 'Lo que guardaste',     icon: Heart,            href: '/dashboard/favorites', color: 'pink',   show: true        },
+    { id: 'reviews',   label: 'Reseñas',   desc: 'Tus comentarios',      icon: Star,             href: '/dashboard/reviews',   color: 'yellow', show: true        },
+  ].filter(i => i.show)
+
   const renderUserModalContent = () => {
+    const fullName = `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || userData?.businessName || ''
+
     return (
-      <div className="space-y-4">
-        {/* Header del usuario */}
-        <div className="bg-gradient-to-r from-brand-teal-600 to-brand-teal-800 rounded-2xl p-4 shadow-lg">
+      <div>
+        {/* Cabecera teal */}
+        <div className="bg-gradient-to-r from-brand-teal-600 to-brand-teal-800 rounded-2xl p-4 shadow-lg mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-xl font-bold text-white">
-                {getUserInitials()}
-              </span>
-            </div>
+            {userData?.profileImage ? (
+              <img src={userData.profileImage} alt="" className="w-14 h-14 rounded-full object-cover border-2 border-white/30 flex-shrink-0" />
+            ) : (
+              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-xl font-bold text-white">{getUserInitials()}</span>
+              </div>
+            )}
             <div className="min-w-0 flex-1">
-              <h4 className="font-semibold text-white text-base leading-tight">
-                {userData?.firstName} {userData?.lastName}
-              </h4>
-              <p className="text-sm text-white/80 truncate">
-                {userData?.email}
-              </p>
-              {isAdmin && (
-                <span className="inline-block mt-1 px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full text-xs text-white font-medium">
-                  Administrador
-                </span>
-              )}
+              <p className="font-bold text-white text-base leading-tight truncate">{fullName}</p>
+              <p className="text-sm text-white/75 truncate">{userData?.email || userData?.phone}</p>
             </div>
           </div>
         </div>
 
-        {/* Secciones del menú */}
-        {finalUserMenuSections.map((section, idx) => (
-          <div key={idx}>
-            <div className="px-2 py-2">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                {section.section}
-              </p>
-            </div>
-            <div className="space-y-2">
-              {section.items.map((item) => {
-                const Icon = item.icon
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleUserMenuNavigation(item.href)}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/20 transition-all duration-200 text-left group cursor-pointer"
-                  >
-                    <div className="w-10 h-10 bg-white dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-brand-teal-100 dark:group-hover:bg-brand-teal-900/40 transition-colors">
-                      <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h4 className="font-medium text-gray-900 dark:text-white text-sm leading-tight group-hover:text-brand-teal-600 dark:group-hover:text-brand-teal-400">
-                        {item.label}
-                      </h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {item.description}
-                      </p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-brand-teal-500 flex-shrink-0" />
-                  </button>
-                )
-              })}
-            </div>
+        {/* Panel Admin */}
+        {isAdmin && (
+          <div className="mb-2 p-1.5 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-800">
+            <button
+              onClick={() => handleUserMenuNavigation('/admin')}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+            >
+              <div className="w-9 h-9 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
+                <Shield className="w-4 h-4 text-red-600 dark:text-red-400" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-black text-red-700 dark:text-red-400">Panel Admin</p>
+                <p className="text-xs text-red-500 dark:text-red-500">Gestión de la plataforma</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-red-400" />
+            </button>
           </div>
-        ))}
+        )}
+
+        {/* Items de navegación */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-2">
+          {userMenuItems.map((item, idx) => {
+            const Icon = item.icon
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleUserMenuNavigation(item.href)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${idx < userMenuItems.length - 1 ? 'border-b border-gray-50 dark:border-gray-700' : ''}`}
+              >
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${iconColors[item.color]}`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{item.label}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">{item.desc}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Compartir e Instalar */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-2">
+          <button
+            onClick={handleShare}
+            className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-50 dark:border-gray-700"
+          >
+            <div className="w-9 h-9 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+              <Share2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">Compartir la app</p>
+              <p className="text-xs text-gray-400">Invitá a amigos</p>
+            </div>
+          </button>
+          {!isInstalled && (
+            <button
+              onClick={installPrompt ? handleInstall : undefined}
+              disabled={!installPrompt}
+              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-40"
+            >
+              <div className="w-9 h-9 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center">
+                <Download className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">Instalar la app</p>
+                <p className="text-xs text-gray-400">{installPrompt ? 'Agregar al inicio' : 'Ya instalada o no disponible'}</p>
+              </div>
+            </button>
+          )}
+        </div>
 
         {/* Cerrar sesión */}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 text-left group border border-red-200 dark:border-red-800 cursor-pointer"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors border border-red-100 dark:border-red-800"
         >
-          <div className="w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-red-200 dark:group-hover:bg-red-900/60 transition-colors">
-            <LogOut className="w-5 h-5 text-red-600 dark:text-red-400" />
+          <div className="w-9 h-9 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
+            <LogOut className="w-4 h-4 text-red-600 dark:text-red-400" />
           </div>
-          <div className="min-w-0 flex-1">
-            <h4 className="font-medium text-red-700 dark:text-red-400 text-sm leading-tight">
-              Cerrar Sesión
-            </h4>
-            <p className="text-xs text-red-600 dark:text-red-500">
-              Salir de tu cuenta
-            </p>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-semibold text-red-600 dark:text-red-400">Cerrar sesión</p>
+            <p className="text-xs text-red-400 dark:text-red-500">Salir de tu cuenta</p>
           </div>
         </button>
       </div>

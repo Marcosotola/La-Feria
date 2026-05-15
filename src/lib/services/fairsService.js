@@ -106,6 +106,29 @@ export const updateFair = async (fairId, updateData) => {
 };
 
 /**
+ * Obtiene una feria por ID
+ */
+export const getFairById = async (fairId) => {
+  try {
+    const docRef = doc(db, COLLECTION_NAME, fairId);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return null;
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      ...data,
+      location: data.location ? {
+        lat: data.location.latitude,
+        lng: data.location.longitude
+      } : null
+    };
+  } catch (error) {
+    console.error("Error getting fair:", error);
+    return null;
+  }
+};
+
+/**
  * Elimina (o desactiva) una feria
  */
 export const deleteFair = async (fairId) => {

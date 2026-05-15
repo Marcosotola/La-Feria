@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { 
   Phone, 
@@ -33,16 +33,47 @@ import { auth, db, storage } from '@/lib/firebase/config'
 import Toast from '@/components/ui/Toast'
 
 export default function Register({ onSwitchToLogin }) {
-  const { 
-    setupRecaptcha, 
-    signInWithPhone, 
+  const {
+    signInWithPhone,
     verifyOtp,
     signInWithGoogle,
     registerWithEmail,
     refreshUserData
   } = useAuth()
 
-  const [step, setStep] = useState(1) 
+  const recaptchaVerifierRef = useRef(null)
+  const recaptchaContainerRef = useRef(null)
+
+  const reinitRecaptcha = useCallback(() => {
+    if (recaptchaVerifierRef.current) {
+      try { recaptchaVerifierRef.current.clear() } catch (_) {}
+      recaptchaVerifierRef.current = null
+    }
+    if (recaptchaContainerRef.current) {
+      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, recaptchaContainerRef.current, { size: 'invisible' })
+    }
+  }, [])
+
+  useEffect(() => {
+    // Crear el container fuera del árbol de React para que no lo reconcilie
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    recaptchaContainerRef.current = container
+    recaptchaVerifierRef.current = new RecaptchaVerifier(auth, container, { size: 'invisible' })
+
+    return () => {
+      if (recaptchaVerifierRef.current) {
+        try { recaptchaVerifierRef.current.clear() } catch (_) {}
+        recaptchaVerifierRef.current = null
+      }
+      if (recaptchaContainerRef.current && document.body.contains(recaptchaContainerRef.current)) {
+        document.body.removeChild(recaptchaContainerRef.current)
+        recaptchaContainerRef.current = null
+      }
+    }
+  }, [])
+
+  const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [otp, setOtp] = useState('')
@@ -79,13 +110,13 @@ export default function Register({ onSwitchToLogin }) {
     setError(null)
     setShowToast(false)
     try {
-      const verifier = setupRecaptcha('recaptcha-container-register')
       const fullPhone = `+549${phoneParts.number}`
-      const result = await signInWithPhone(fullPhone, verifier)
+      const result = await signInWithPhone(fullPhone, recaptchaVerifierRef.current)
       setConfirmationResult(result)
       setStep(2)
     } catch (err) {
-      setError('Error al enviar SMS. Verifica el número.')
+      reinitRecaptcha()
+      setError('Error al enviar SMS. Verificá el número e intentá de nuevo.')
       setShowToast(true)
     } finally {
       setLoading(false)
@@ -229,11 +260,7 @@ export default function Register({ onSwitchToLogin }) {
       await setDoc(doc(db, 'users', authUser.uid), updateData, { merge: true })
       await refreshUserData()
       
-      if (selectedRole === 'organizer') {
-        window.location.href = '/dashboard/organizer'
-      } else {
-        window.location.href = '/dashboard'
-      }
+      window.location.href = '/dashboard'
     } catch (err) {
       setError('Error al finalizar el registro')
       setShowToast(true)
@@ -272,9 +299,6 @@ export default function Register({ onSwitchToLogin }) {
                 </button>
               )}
             </div>
-
-            {/* CONTENEDOR RECAPTCHA INVISIBLE */}
-            <div id="recaptcha-container-register"></div>
 
             {/* PASO 1: MÉTODO DE REGISTRO */}
             {step === 1 && (

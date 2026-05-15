@@ -1,6 +1,8 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { RecaptchaVerifier } from 'firebase/auth'
+import { auth } from '@/lib/firebase/config'
 import { 
   Phone, 
   Key, 
@@ -15,12 +17,42 @@ import { db } from '@/lib/firebase/config'
 import Toast from '@/components/ui/Toast'
 
 export default function Login({ onSwitchToRegister }) {
-  const { 
-    setupRecaptcha, 
-    signInWithPhone, 
+  const {
+    signInWithPhone,
     signInWithGoogle,
-    loginWithEmail 
+    loginWithEmail
   } = useAuth()
+
+  const recaptchaVerifierRef = useRef(null)
+  const recaptchaContainerRef = useRef(null)
+
+  const reinitRecaptcha = useCallback(() => {
+    if (recaptchaVerifierRef.current) {
+      try { recaptchaVerifierRef.current.clear() } catch (_) {}
+      recaptchaVerifierRef.current = null
+    }
+    if (recaptchaContainerRef.current) {
+      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, recaptchaContainerRef.current, { size: 'invisible' })
+    }
+  }, [])
+
+  useEffect(() => {
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    recaptchaContainerRef.current = container
+    recaptchaVerifierRef.current = new RecaptchaVerifier(auth, container, { size: 'invisible' })
+
+    return () => {
+      if (recaptchaVerifierRef.current) {
+        try { recaptchaVerifierRef.current.clear() } catch (_) {}
+        recaptchaVerifierRef.current = null
+      }
+      if (recaptchaContainerRef.current && document.body.contains(recaptchaContainerRef.current)) {
+        document.body.removeChild(recaptchaContainerRef.current)
+        recaptchaContainerRef.current = null
+      }
+    }
+  }, [])
 
   const [step, setStep] = useState(1) // 1: Method Select / Phone, 2: OTP, 3: Email Login
   const [loading, setLoading] = useState(false)
@@ -53,12 +85,12 @@ export default function Login({ onSwitchToRegister }) {
     setError(null)
     setShowToast(false)
     try {
-      const verifier = setupRecaptcha('recaptcha-container-login')
-      const result = await signInWithPhone(fullPhone, verifier)
+      const result = await signInWithPhone(fullPhone, recaptchaVerifierRef.current)
       setConfirmationResult(result)
       setStep(2)
     } catch (err) {
-      setError('Error al enviar SMS. Verifica el número.')
+      reinitRecaptcha()
+      setError('Error al enviar SMS. Verificá el número e intentá de nuevo.')
       setShowToast(true)
     } finally {
       setLoading(false)
@@ -119,8 +151,6 @@ export default function Login({ onSwitchToRegister }) {
             Inicia sesión para continuar
           </p>
         </div>
-
-        <div id="recaptcha-container-login"></div>
 
         {step === 1 && (
           <div className="space-y-6">

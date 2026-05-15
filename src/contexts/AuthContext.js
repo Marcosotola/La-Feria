@@ -107,14 +107,15 @@ export const AuthProvider = ({ children }) => {
   // 📱 NUEVA FUNCIÓN: Configurar Recaptcha para Teléfono
   const setupRecaptcha = (containerId) => {
     if (window.recaptchaVerifier) return window.recaptchaVerifier;
-    
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-      'size': 'invisible',
-      'callback': (response) => {
-        // reCAPTCHA solved, allow signInWithPhoneNumber.
-      }
-    });
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, { size: 'invisible' });
     return window.recaptchaVerifier;
+  };
+
+  const clearRecaptcha = () => {
+    if (window.recaptchaVerifier) {
+      try { window.recaptchaVerifier.clear() } catch (_) {}
+      window.recaptchaVerifier = null
+    }
   };
 
   // 📱 NUEVA FUNCIÓN: Iniciar sesión con teléfono (enviar SMS)
@@ -333,6 +334,7 @@ export const AuthProvider = ({ children }) => {
     signOut,
     refreshUserData,
     setupRecaptcha,
+    clearRecaptcha,
     signInWithPhone
   };
 

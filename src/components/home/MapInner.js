@@ -4,13 +4,38 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
 export default function MapInner({ onSelect, fairs = [] }) {
-  // Icono personalizado con el logo de La Feria
-  const customIcon = new L.Icon({
-    iconUrl: '/icon.png',
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -40],
-    className: 'drop-shadow-lg filter hover:scale-110 transition-transform cursor-pointer'
+  const customIcon = L.divIcon({
+    html: `
+      <div style="position:relative;width:52px;height:64px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.45));cursor:pointer;">
+        <div style="
+          width:52px;
+          height:52px;
+          background:#ffffff;
+          border-radius:50%;
+          border:3px solid #E8613C;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          overflow:hidden;
+          box-sizing:border-box;
+        ">
+          <img src="/icon-192.png" style="width:36px;height:36px;object-fit:contain;" alt="" />
+        </div>
+        <div style="
+          width:0;
+          height:0;
+          border-left:10px solid transparent;
+          border-right:10px solid transparent;
+          border-top:14px solid #E8613C;
+          margin:0 auto;
+          margin-top:-1px;
+        "></div>
+      </div>
+    `,
+    iconSize: [52, 64],
+    iconAnchor: [26, 64],
+    popupAnchor: [0, -64],
+    className: ''
   })
 
   // Córdoba, Argentina por defecto

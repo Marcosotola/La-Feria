@@ -8,7 +8,6 @@ import DashboardTopNavigation from '@/components/layout/DashboardTopNavigation';
 import ProfileNavBadges from '@/components/layout/ProfileNavBadges';
 import PersonalInfoSection from '@/components/profile/PersonalInfoSection';
 import ProfileImageSection from '@/components/profile/ProfileImageSection';
-import AccountSettingsSection from '@/components/profile/AccountSettingsSection';
 import ToastContainer from '@/components/ui/ToastContainer';
 import useToast from '@/hooks/useToast';
 import { User, Shield, ChevronLeft } from 'lucide-react';
@@ -107,8 +106,6 @@ export default function ProfilePage() {
             showMessage={showMessage}
           />
         );
-      case 'account':
-        return <AccountSettingsSection showMessage={showMessage} />;
       default:
         return <PersonalInfoSection showMessage={showMessage} />;
     }

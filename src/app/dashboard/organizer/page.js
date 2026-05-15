@@ -2,112 +2,43 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { 
-  ShieldCheck, 
-  Upload, 
-  Plus, 
-  MapPin, 
-  Store, 
-  ArrowRight, 
-  Loader2,
-  FileText,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  Calendar
+import {
+  Plus, MapPin, Store, ArrowLeft, Loader2,
+  Calendar, Clock, Pencil, Trash2
 } from 'lucide-react'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { doc, updateDoc } from 'firebase/firestore'
-import { db, storage } from '@/lib/firebase/config'
+import Image from 'next/image'
 import Link from 'next/link'
-import { getFairsByOrganizer } from '@/lib/services/fairsService'
+import { getFairsByOrganizer, deleteFair } from '@/lib/services/fairsService'
 
 export default function OrganizerDashboard() {
-  const { user, userData, refreshUserData, loading: authLoading } = useAuth()
+  const { user, userData, loading: authLoading } = useAuth()
   const router = useRouter()
-  
+
   const [fairs, setFairs] = useState([])
   const [loading, setLoading] = useState(true)
-  const [registering, setRegistering] = useState(false)
-  
-  // Estados para el registro
-  const [files, setFiles] = useState({ front: null, back: null })
-  const [previews, setPreviews] = useState({ front: null, back: null })
-  const [uploadStatus, setUploadStatus] = useState('idle') // idle, uploading, success, error
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login')
-      return
-    }
-
-    if (userData?.role === 'organizer' || userData?.role === 'admin') {
-      loadFairs()
-    } else {
-      setLoading(false)
-    }
-  }, [user, userData, authLoading])
+    if (!authLoading && !user) { router.push('/login'); return }
+    if (!authLoading && user) loadFairs()
+  }, [user, authLoading])
 
   const loadFairs = async () => {
-    setLoading(true)
     const data = await getFairsByOrganizer(user.uid)
     setFairs(data)
     setLoading(false)
   }
 
-  const handleFileChange = (e, side) => {
-    const file = e.target.files[0]
-    if (file) {
-      setFiles(prev => ({ ...prev, [side]: file }))
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreviews(prev => ({ ...prev, [side]: reader.result }))
-      }
-      reader.readAsDataURL(file)
-    }
+  const handleDelete = async (id) => {
+    setDeleting(true)
+    const result = await deleteFair(id)
+    if (result.success) setFairs(prev => prev.filter(f => f.id !== id))
+    setConfirmDeleteId(null)
+    setDeleting(false)
   }
 
-  const handleRegisterAsOrganizer = async () => {
-    if (!files.front || !files.back) {
-      alert('Por favor sube ambas fotos de tu DNI')
-      return
-    }
-
-    try {
-      setUploadStatus('uploading')
-      
-      // 1. Subir fotos a Firebase Storage
-      const frontRef = ref(storage, `users/${user.uid}/dni_front_${Date.now()}`)
-      const backRef = ref(storage, `users/${user.uid}/dni_back_${Date.now()}`)
-      
-      const [frontSnap, backSnap] = await Promise.all([
-        uploadBytes(frontRef, files.front),
-        uploadBytes(backRef, files.back)
-      ])
-      
-      const [frontUrl, backUrl] = await Promise.all([
-        getDownloadURL(frontSnap.ref),
-        getDownloadURL(backSnap.ref)
-      ])
-      
-      // 2. Actualizar rol y datos en Firestore
-      await updateDoc(doc(db, 'users', user.uid), {
-        role: 'organizer',
-        dniFrontUrl: frontUrl,
-        dniBackUrl: backUrl,
-        organizerStatus: 'approved', // Auto-aprobado como pidió el usuario
-        updatedAt: new Date()
-      })
-      
-      await refreshUserData()
-      setUploadStatus('success')
-    } catch (error) {
-      console.error("Error al registrar organizador:", error)
-      setUploadStatus('error')
-    }
-  }
-
-  if (authLoading || (loading && (userData?.role === 'organizer' || userData?.role === 'admin'))) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-10 h-10 animate-spin text-primary-500" />
@@ -115,191 +46,136 @@ export default function OrganizerDashboard() {
     )
   }
 
-  // VISTA DE REGISTRO (Si no es organizador)
-  if (userData?.role !== 'organizer' && userData?.role !== 'admin') {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-12">
-        <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-gray-800 p-8 md:p-12">
-          <div className="w-16 h-16 bg-brand-teal-100 dark:bg-brand-teal-900/30 rounded-2xl flex items-center justify-center mb-8">
-            <ShieldCheck className="w-10 h-10 text-brand-teal-600" />
-          </div>
-          
-          <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-4">
-            Conviértete en Organizador
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-10 text-lg leading-relaxed">
-            Para gestionar ferias, publicar ubicaciones y coordinar puesteros, necesitamos validar tu identidad con una foto de tu DNI. Este proceso es automático y te dará acceso instantáneo a las herramientas de gestión.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            {/* Frente DNI */}
-            <div className="relative group">
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 px-2">
-                DNI Frente
-              </label>
-              <div 
-                className={`relative h-48 rounded-2xl border-2 border-dashed transition-all overflow-hidden flex flex-col items-center justify-center gap-3 ${
-                  previews.front ? 'border-brand-teal-500' : 'border-gray-300 dark:border-gray-700 hover:border-brand-teal-400'
-                }`}
-              >
-                {previews.front ? (
-                  <img src={previews.front} className="w-full h-full object-cover" />
-                ) : (
-                  <>
-                    <Upload className="w-8 h-8 text-gray-400 group-hover:text-brand-teal-500 transition-colors" />
-                    <span className="text-xs font-medium text-gray-500">Haz clic para subir foto</span>
-                  </>
-                )}
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={(e) => handleFileChange(e, 'front')}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-              </div>
-            </div>
-
-            {/* Dorso DNI */}
-            <div className="relative group">
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 px-2">
-                DNI Dorso
-              </label>
-              <div 
-                className={`relative h-48 rounded-2xl border-2 border-dashed transition-all overflow-hidden flex flex-col items-center justify-center gap-3 ${
-                  previews.back ? 'border-brand-teal-500' : 'border-gray-300 dark:border-gray-700 hover:border-brand-teal-400'
-                }`}
-              >
-                {previews.back ? (
-                  <img src={previews.back} className="w-full h-full object-cover" />
-                ) : (
-                  <>
-                    <Upload className="w-8 h-8 text-gray-400 group-hover:text-brand-teal-500 transition-colors" />
-                    <span className="text-xs font-medium text-gray-500">Haz clic para subir foto</span>
-                  </>
-                )}
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={(e) => handleFileChange(e, 'back')}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={handleRegisterAsOrganizer}
-            disabled={uploadStatus === 'uploading' || !files.front || !files.back}
-            className="w-full py-4 bg-brand-teal-600 hover:bg-brand-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-2xl shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-3"
-          >
-            {uploadStatus === 'uploading' ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Procesando identidad...
-              </>
-            ) : (
-              <>
-                Completar Registro <ArrowRight className="w-5 h-5" />
-              </>
-            )}
-          </button>
-
-          {uploadStatus === 'success' && (
-            <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl flex items-center gap-3 text-green-700 dark:text-green-400">
-              <CheckCircle2 className="w-6 h-6" />
-              <p className="font-bold">¡Identidad validada! Ya eres Organizador. Redirigiendo...</p>
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  // DASHBOARD DE ORGANIZADOR
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-        <div>
-          <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">
-            Panel de Organizador
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Gestiona tus ferias y puntos de encuentro.
-          </p>
-        </div>
-        <Link 
-          href="/dashboard/organizer/new-fair"
-          className="bg-primary-500 hover:bg-primary-600 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-primary-500/30 transition-all flex items-center gap-2 active:scale-95"
+    <div className="max-w-3xl mx-auto px-4 py-8 pb-28">
+
+      {/* Cabecera */}
+      <div className="flex items-center gap-3 mb-8">
+        <Link
+          href="/dashboard"
+          className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
         >
-          <Plus className="w-5 h-5" /> Crear Nueva Feria
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <div className="flex-1">
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white leading-tight">Mis Ferias</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Gestioná tus ferias publicadas</p>
+        </div>
+        <Link
+          href="/dashboard/organizer/new-fair"
+          className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-bold px-4 py-2.5 rounded-2xl shadow-lg shadow-primary-500/30 text-sm transition-all active:scale-95"
+        >
+          <Plus className="w-4 h-4" /> Nueva
         </Link>
       </div>
 
+      {/* Lista */}
       {fairs.length === 0 ? (
-        <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-dashed border-gray-300 dark:border-gray-700 p-12 text-center">
-          <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Store className="w-10 h-10 text-gray-400" />
+        <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border-2 border-dashed border-gray-200 dark:border-gray-700 p-12 text-center">
+          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-5">
+            <Store className="w-8 h-8 text-gray-400" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Aún no tienes ferias</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
-            Comienza por crear tu primera feria para que aparezca en el mapa principal y los puesteros puedan unirse.
+          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-2">
+            Todavía no tenés ferias
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-8 max-w-xs mx-auto">
+            Creá tu primera feria para que aparezca en el mapa y los puesteros puedan encontrarla.
           </p>
-          <Link 
+          <Link
             href="/dashboard/organizer/new-fair"
-            className="text-primary-600 font-black hover:underline"
+            className="inline-flex items-center gap-2 bg-primary-500 text-white font-bold px-6 py-3 rounded-2xl shadow-lg shadow-primary-500/30 text-sm hover:bg-primary-600 active:scale-95 transition-all"
           >
-            Crear mi primera feria →
+            <Plus className="w-4 h-4" /> Crear mi primera feria
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {fairs.map((fair) => (
-            <div 
-              key={fair.id}
-              className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden group"
-            >
-              <div className="relative h-48 overflow-hidden">
-                <img 
-                  src={fair.image || 'https://images.unsplash.com/photo-1533900298318-6b8da08a523e?q=80&w=600&auto=format&fit=crop'} 
-                  alt={fair.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-gray-900">
-                  {fair.status === 'active' ? 'Activa' : 'Inactiva'}
+        <div className="space-y-3">
+          {fairs.map(fair => {
+            const isConfirming = confirmDeleteId === fair.id
+            return (
+              <div
+                key={fair.id}
+                className="flex gap-3 bg-white dark:bg-gray-900 rounded-3xl p-3 shadow-sm border border-gray-100 dark:border-gray-800"
+              >
+                {/* Thumbnail */}
+                <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 relative bg-gray-100 dark:bg-gray-800">
+                  {fair.image ? (
+                    <Image src={fair.image} alt={fair.name} fill className="object-cover" sizes="80px" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl">🎪</div>
+                  )}
                 </div>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2 line-clamp-1">{fair.name}</h3>
-                
-                <div className="space-y-2 mb-6">
-                  <div className="flex items-center gap-2 text-gray-500 text-sm">
-                    <MapPin className="w-4 h-4 text-primary-500" />
-                    <span className="truncate">{fair.locationName || fair.location?.address || 'Ubicación pendiente'}</span>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0 py-0.5">
+                  <h3 className="font-black text-gray-900 dark:text-white text-sm leading-snug mb-1 line-clamp-1">
+                    {fair.name}
+                  </h3>
+                  <div className="space-y-0.5">
+                    {(fair.locationName || fair.address) && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-primary-500 shrink-0" />
+                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {fair.locationName || fair.address}
+                        </span>
+                      </div>
+                    )}
+                    {fair.days && (
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-brand-teal-500 shrink-0" />
+                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {fair.days}{fair.hours ? ` · ${fair.hours}` : ''}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 text-gray-500 text-sm">
-                    <Calendar className="w-4 h-4 text-brand-teal-500" />
-                    <span>{fair.days || 'Días no especificados'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-500 text-sm">
-                    <Clock className="w-4 h-4 text-accent-500" />
-                    <span>{fair.hours || 'Horarios no especificados'}</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                    {fair.stalls?.length || 0} Puesteros
+                  <span className={`inline-block mt-1.5 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    fair.status === 'active'
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                  }`}>
+                    {fair.status === 'active' ? 'Activa' : 'Inactiva'}
                   </span>
-                  <Link 
-                    href={`/dashboard/organizer/edit/${fair.id}`}
-                    className="text-brand-teal-600 font-black text-sm hover:underline"
-                  >
-                    Gestionar →
-                  </Link>
+                </div>
+
+                {/* Acciones */}
+                <div className="flex flex-col gap-1.5 self-center shrink-0">
+                  {isConfirming ? (
+                    <>
+                      <button
+                        onClick={() => handleDelete(fair.id)}
+                        disabled={deleting}
+                        className="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-xl text-[10px] font-black flex items-center justify-center transition-colors"
+                      >
+                        {deleting ? '…' : 'Sí'}
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="w-10 h-10 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-xl text-[10px] font-black flex items-center justify-center"
+                      >
+                        No
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => router.push(`/dashboard/organizer/edit-fair/${fair.id}`)}
+                        className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-400 rounded-xl flex items-center justify-center hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(fair.id)}
+                        className="w-10 h-10 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-xl flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

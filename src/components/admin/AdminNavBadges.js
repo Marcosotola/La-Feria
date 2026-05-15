@@ -3,16 +3,18 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
-import { 
-  Users, 
+import {
+  Users,
   ShoppingBag,
   Wrench,
   Briefcase,
-  MessageCircle,
+  Star,
   MessageSquare,
   ChevronLeft,
   ChevronRight,
-  LayoutDashboard
+  LayoutDashboard,
+  MapPin,
+  Store
 } from 'lucide-react';
 
 export default function AdminNavBadges() {
@@ -40,6 +42,22 @@ export default function AdminNavBadges() {
       href: '/admin/usuarios'
     },
     {
+      id: 'ferias',
+      name: 'Ferias',
+      icon: MapPin,
+      color: 'orange',
+      description: 'Todas las ferias',
+      href: '/admin/ferias'
+    },
+    {
+      id: 'tiendas',
+      name: 'Tiendas',
+      icon: Store,
+      color: 'teal',
+      description: 'Todas las tiendas',
+      href: '/admin/tiendas'
+    },
+    {
       id: 'productos',
       name: 'Productos',
       icon: ShoppingBag,
@@ -64,11 +82,11 @@ export default function AdminNavBadges() {
       href: '/admin/empleos'
     },
     {
-      id: 'comentarios',
-      name: 'Comentarios',
-      icon: MessageCircle,
+      id: 'resenas',
+      name: 'Reseñas',
+      icon: Star,
       color: 'pink',
-      description: 'Moderar comentarios',
+      description: 'Moderar reseñas',
       href: '/admin/comentarios'
     },
     {
@@ -110,6 +128,14 @@ export default function AdminNavBadges() {
       cyan: {
         active: 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-200 dark:shadow-cyan-900/50 border-2 border-cyan-300',
         inactive: 'bg-gradient-to-r from-cyan-50 to-cyan-100 text-cyan-700 hover:from-cyan-100 hover:to-cyan-200 dark:from-cyan-900/20 dark:to-cyan-800/30 dark:text-cyan-300 dark:hover:from-cyan-900/40 dark:hover:to-cyan-800/50 border-2 border-cyan-200 hover:border-cyan-300 dark:border-cyan-700'
+      },
+      orange: {
+        active: 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-200 dark:shadow-orange-900/50 border-2 border-orange-300',
+        inactive: 'bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/20 dark:to-orange-800/30 dark:text-orange-300 dark:hover:from-orange-900/40 dark:hover:to-orange-800/50 border-2 border-orange-200 hover:border-orange-300 dark:border-orange-700'
+      },
+      teal: {
+        active: 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-200 dark:shadow-teal-900/50 border-2 border-teal-300',
+        inactive: 'bg-gradient-to-r from-teal-50 to-teal-100 text-teal-700 hover:from-teal-100 hover:to-teal-200 dark:from-teal-900/20 dark:to-teal-800/30 dark:text-teal-300 dark:hover:from-teal-900/40 dark:hover:to-teal-800/50 border-2 border-teal-200 hover:border-teal-300 dark:border-teal-700'
       }
     };
     

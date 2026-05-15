@@ -3,9 +3,9 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { 
-  BarChart3, User, ChevronDown, Store, ExternalLink, House, 
-  Heart, Star, ShoppingBag, Menu, X, Shield
+import {
+  BarChart3, User, ChevronDown, ChevronRight, Store, ExternalLink, House,
+  Heart, Star, ShoppingBag, Menu, X, Shield, MapPin
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -41,6 +41,7 @@ export default function DashboardTopNavigation() {
   }
 
   const isAdmin = userData?.role === 'admin'
+  const isOrganizer = isAdmin || userData?.role === 'organizer'
   const storeUrl = userData?.storeSlug
 
   const isActive = (href) => {
@@ -59,75 +60,31 @@ export default function DashboardTopNavigation() {
 
   // Definir todos los items de navegación
   const navItems = [
-    {
-      id: 'home',
-      label: 'Inicio',
-      icon: House,
-      href: '/',
-      color: 'gray',
-      showAlways: true
-    },
-    {
-      id: 'dashboard',
-      label: 'Panel',
-      icon: BarChart3,
-      href: '/dashboard',
-      color: 'purple',
-      showAlways: true
-    },
-    {
-      id: 'profile',
-      label: 'Perfil',
-      icon: User,
-      href: '/dashboard/profile',
-      color: 'blue',
-      showAlways: true
-    },
-    {
-      id: 'store',
-      label: 'Tienda',
-      icon: Store,
-      href: '/dashboard/store',
-      color: 'orange',
-      showAlways: true
-    },
-    {
-      id: 'products',
-      label: 'Productos',
-      icon: ShoppingBag,
-      href: '/dashboard/store/products',
-      color: 'green',
-      showAlways: false,
-      mobileOnly: true
-    },
-    {
-      id: 'favorites',
-      label: 'Favoritos',
-      icon: Heart,
-      href: '/dashboard/favorites',
-      color: 'pink',
-      showAlways: true
-    },
-    {
-      id: 'reviews',
-      label: 'Reseñas',
-      icon: Star,
-      href: '/dashboard/reviews',
-      color: 'yellow',
-      showAlways: true
-    }
+    { id: 'home',      label: 'Inicio',    icon: House,       href: '/',                        color: 'gray',   desc: 'Ir a la página principal',  showAlways: true              },
+    { id: 'dashboard', label: 'Panel',     icon: BarChart3,   href: '/dashboard',               color: 'purple', desc: 'Vista general',             showAlways: true              },
+    { id: 'profile',   label: 'Perfil',    icon: User,        href: '/dashboard/profile',       color: 'blue',   desc: 'Información personal',      showAlways: true              },
+    { id: 'store',     label: 'Tienda',    icon: Store,       href: '/dashboard/store',         color: 'orange', desc: 'Gestiona tu negocio',       showAlways: true              },
+    { id: 'products',  label: 'Productos', icon: ShoppingBag, href: '/dashboard/store/products',color: 'green',  desc: 'Ver todos tus productos',   showAlways: false, mobileOnly: true },
+    { id: 'favorites', label: 'Favoritos', icon: Heart,       href: '/dashboard/favorites',     color: 'pink',   desc: 'Lo que guardaste',          showAlways: true              },
+    { id: 'reviews',   label: 'Reseñas',  icon: Star,        href: '/dashboard/reviews',       color: 'yellow', desc: 'Tus comentarios',           showAlways: true              },
   ]
 
-  // Item de admin (ahora es solo uno)
-  const adminItem = {
-    id: 'admin',
-    label: 'Panel Admin',
-    icon: Shield,
-    href: '/admin',
-    color: 'red'
+  // Item de ferias (solo organizer/admin)
+  const feriasItem = { id: 'ferias', label: 'Mis Ferias',   icon: MapPin, href: '/dashboard/organizer', color: 'orange', desc: 'Gestionar tus ferias'   }
+  const adminItem  = { id: 'admin',  label: 'Panel Admin',  icon: Shield, href: '/admin',               color: 'red',    desc: 'Gestión de la plataforma' }
+
+  const iconColors = {
+    gray:   'bg-gray-100   dark:bg-gray-700        text-gray-600   dark:text-gray-400',
+    purple: 'bg-purple-100 dark:bg-purple-900/30   text-purple-600 dark:text-purple-400',
+    blue:   'bg-blue-100   dark:bg-blue-900/30     text-blue-600   dark:text-blue-400',
+    orange: 'bg-orange-100 dark:bg-orange-900/30   text-orange-600 dark:text-orange-400',
+    green:  'bg-green-100  dark:bg-green-900/30    text-green-600  dark:text-green-400',
+    pink:   'bg-pink-100   dark:bg-pink-900/30     text-pink-600   dark:text-pink-400',
+    yellow: 'bg-yellow-100 dark:bg-yellow-900/30   text-yellow-600 dark:text-yellow-400',
+    red:    'bg-red-100    dark:bg-red-900/30      text-red-600    dark:text-red-400',
   }
 
-  // Colores por tipo
+  // Colores por tipo (tabs desktop/tablet)
   const getColorClasses = (color, isActive) => {
     const colors = {
       gray: {
@@ -169,7 +126,11 @@ export default function DashboardTopNavigation() {
 
   // Obtener el título de la página actual
   const getCurrentPageTitle = () => {
-    const allItems = [...navItems, ...(isAdmin ? [adminItem] : [])]
+    const allItems = [
+      ...navItems,
+      ...(isOrganizer ? [feriasItem] : []),
+      ...(isAdmin ? [adminItem] : [])
+    ]
     const currentItem = allItems.find(item => isActive(item.href))
     return currentItem?.label || 'Dashboard'
   }
@@ -198,6 +159,17 @@ export default function DashboardTopNavigation() {
                     </button>
                   )
                 })}
+
+                {/* Item de ferias */}
+                {isOrganizer && (
+                  <button
+                    onClick={() => navigateTo(feriasItem.href)}
+                    className={`flex items-center space-x-2 px-4 py-4 border-b-2 font-medium text-sm transition-all whitespace-nowrap cursor-pointer ${getColorClasses(feriasItem.color, isActive(feriasItem.href))}`}
+                  >
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span>{feriasItem.label}</span>
+                  </button>
+                )}
 
                 {/* Item de admin */}
                 {isAdmin && (
@@ -236,7 +208,7 @@ export default function DashboardTopNavigation() {
             {/* Navegación en scroll horizontal */}
             <div className="flex-1 overflow-x-auto scrollbar-hide">
               <div className="flex space-x-1 min-w-max">
-                {[...navItems.filter(item => item.showAlways), ...(isAdmin ? [adminItem] : [])].map((item) => {
+                {[...navItems.filter(item => item.showAlways), ...(isOrganizer ? [feriasItem] : []), ...(isAdmin ? [adminItem] : [])].map((item) => {
                   const Icon = item.icon
                   const active = isActive(item.href)
                   
@@ -309,50 +281,75 @@ export default function DashboardTopNavigation() {
 
           {/* Mobile dropdown */}
           {showMobileMenu && (
-            <div className="absolute top-full left-4 right-4 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden">
-              
-              {/* Sección principal */}
-              <div className="py-2">
+            <div className="absolute top-full left-4 right-4 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl overflow-hidden z-50">
+
+              {/* Items principales */}
+              <div className="py-1.5 px-2">
                 {navItems.map((item) => {
                   const Icon = item.icon
                   const active = isActive(item.href)
-                  
                   return (
                     <button
                       key={item.id}
                       onClick={() => navigateTo(item.href)}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 text-left transition-colors cursor-pointer ${
-                        active 
-                          ? 'bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white font-medium' 
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                      }`}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer ${active ? 'bg-gray-50 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                     >
-                      <Icon className="w-5 h-5 flex-shrink-0" />
-                      <span>{item.label}</span>
-                      {active && (
-                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                      )}
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconColors[item.color]}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0">
+                        <p className={`text-sm font-semibold leading-tight ${active ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{item.label}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{item.desc}</p>
+                      </div>
+                      {active
+                        ? <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                        : <ChevronRight className="w-4 h-4 text-gray-300 dark:text-gray-600 shrink-0" />
+                      }
                     </button>
                   )
                 })}
               </div>
 
-              {/* Sección de admin */}
+              {/* Ferias */}
+              {isOrganizer && (
+                <div className="border-t border-gray-100 dark:border-gray-700 py-1.5 px-2">
+                  <button
+                    onClick={() => navigateTo(feriasItem.href)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer ${isActive(feriasItem.href) ? 'bg-orange-50 dark:bg-orange-900/20' : 'hover:bg-orange-50 dark:hover:bg-orange-900/10'}`}
+                  >
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconColors.orange}`}>
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 text-left min-w-0">
+                      <p className="text-sm font-semibold text-orange-700 dark:text-orange-400 leading-tight">{feriasItem.label}</p>
+                      <p className="text-xs text-orange-500 dark:text-orange-500 truncate">{feriasItem.desc}</p>
+                    </div>
+                    {isActive(feriasItem.href)
+                      ? <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
+                      : <ChevronRight className="w-4 h-4 text-orange-300 shrink-0" />
+                    }
+                  </button>
+                </div>
+              )}
+
+              {/* Admin */}
               {isAdmin && (
-                <div className="border-t border-gray-200 dark:border-gray-700 bg-red-50 dark:bg-red-900/10">
+                <div className="border-t border-gray-100 dark:border-gray-700 py-1.5 px-2">
                   <button
                     onClick={() => navigateTo(adminItem.href)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 text-left transition-colors cursor-pointer ${
-                      isActive(adminItem.href)
-                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 font-semibold' 
-                        : 'text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30'
-                    }`}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors cursor-pointer ${isActive(adminItem.href) ? 'bg-red-50 dark:bg-red-900/20' : 'hover:bg-red-50 dark:hover:bg-red-900/10'}`}
                   >
-                    <Shield className="w-5 h-5 flex-shrink-0" />
-                    <span>{adminItem.label}</span>
-                    {isActive(adminItem.href) && (
-                      <div className="ml-auto w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                    )}
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconColors.red}`}>
+                      <Shield className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 text-left min-w-0">
+                      <p className="text-sm font-semibold text-red-700 dark:text-red-400 leading-tight">{adminItem.label}</p>
+                      <p className="text-xs text-red-500 dark:text-red-500 truncate">{adminItem.desc}</p>
+                    </div>
+                    {isActive(adminItem.href)
+                      ? <div className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                      : <ChevronRight className="w-4 h-4 text-red-300 shrink-0" />
+                    }
                   </button>
                 </div>
               )}
