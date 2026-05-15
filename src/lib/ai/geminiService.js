@@ -79,7 +79,7 @@ Ejemplos:
 "busco trabajo diseñador" → {"intencion":"buscar empleo diseño","tipo_busqueda":["empleos"],"categorias_productos":[],"categorias_servicios":[],"categorias_empleos":["tecnologia","marketing"],"categorias_ferias":[],"palabras_clave":["trabajo","empleo","diseño","diseñador","web"],"es_para_regalar":false,"genero_objetivo":"cualquiera"}`;
 
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.2,
@@ -138,17 +138,22 @@ export async function getMilyResponse(userMessage, conversationHistory, analysis
     .map(m => `${m.type === 'user' ? 'Usuario' : 'Mily'}: ${m.text}`)
     .join('\n');
 
-  const prompt = `Sos Mily, asistente virtual alegre y cercana de La Feria Argentina. Hablás en español argentino, usás máximo 2 emojis y respondés en 2-3 líneas.
+  const prompt = `Sos Mily, asistente virtual alegre y cercana de La Feria Argentina. Hablás en español argentino, usás máximo 2 emojis y respondés en 2-3 líneas cortas. Nunca uses puntos suspensivos solos ni frases sin terminar.
 
 ${recentHistory ? `Conversación previa:\n${recentHistory}\n` : ''}
 El usuario preguntó: "${userMessage}"
 ${hasResults
     ? `Encontraste ${totalResults} resultado(s): ${breakdown}. Respondé entusiasmada mencionando brevemente qué encontraste y sugerí revisar las tarjetas.`
-    : `No encontraste resultados. Respondé empáticamente y sugerí reformular con ejemplos como "regalos para mamá", "plomero", "feria artesanal".`
+    : `No encontraste ningún resultado. La plataforma todavía está cargando sus primeras publicaciones.
+Entendiste que busca: "${analysis?.intencion || userMessage}"
+Respondé de forma amable y clara con estas 3 partes en una sola respuesta fluida:
+1. Confirmá que entendiste lo que busca
+2. Explicá que todavía no hay publicaciones de ese tipo disponibles en la feria
+3. Invitalo a volver pronto o probar con otra búsqueda`
   }`;
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     generationConfig: { temperature: 0.8, maxOutputTokens: 150 },
   });
 

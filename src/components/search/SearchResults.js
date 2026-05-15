@@ -2,16 +2,16 @@
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { 
-  Sparkles, 
-  ShoppingBag, 
-  Briefcase, 
-  Wrench, 
-  ArrowRight, 
-  AlertCircle, 
+import {
+  Sparkles,
+  ShoppingBag,
+  Briefcase,
+  Wrench,
+  AlertCircle,
   SearchX,
   Store,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -36,17 +36,54 @@ export default function SearchResults({ results, error, searchQuery, onClose }) 
     results.productos.length + results.servicios.length + results.empleos.length;
 
   if (totalResults === 0) {
+    const keywords = results?.analysis?.palabras_clave?.filter(w => w.length > 3).slice(0, 6) || [];
+    const intencion = results?.analysis?.intencion;
+
     return (
-      <div className="absolute z-50 w-full mt-3 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 p-10 text-center animate-in fade-in slide-in-from-top-4 duration-300">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-50 dark:bg-gray-700/50 mb-6">
-          <SearchX className="w-10 h-10 text-gray-300" />
+      <div className="absolute z-50 w-full mt-3 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 animate-in fade-in slide-in-from-top-4 duration-300 overflow-hidden">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-700/50">
+              <SearchX className="w-5 h-5 text-gray-400" />
+            </div>
+            <p className="text-base font-bold text-gray-900 dark:text-white">
+              Sin resultados por ahora
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <X className="w-4 h-4 text-gray-400" />
+          </button>
         </div>
-        <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-          No encontramos lo que buscas
-        </p>
-        <p className="text-gray-500 dark:text-gray-400">
-          Intenta con otras palabras para "{searchQuery}"
-        </p>
+
+        {intencion && (
+          <div className="mx-5 mb-3 px-4 py-3 bg-brand-teal-50 dark:bg-brand-teal-900/20 rounded-xl border border-brand-teal-100 dark:border-brand-teal-800">
+            <p className="text-[10px] font-black uppercase tracking-widest text-brand-teal-600 dark:text-brand-teal-400 mb-1 flex items-center gap-1">
+              <Sparkles className="w-3 h-3" /> Entendí que buscás
+            </p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 italic">"{intencion}"</p>
+          </div>
+        )}
+
+        <div className="px-5 pb-5">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+            Todavía no hay publicaciones que coincidan. Probá con:
+          </p>
+          {keywords.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {keywords.map(word => (
+                <span
+                  key={word}
+                  className="px-3 py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full"
+                >
+                  {word}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
