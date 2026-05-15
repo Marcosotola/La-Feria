@@ -420,11 +420,12 @@ export default function MobileNavigation() {
   }
 
   const userMenuItems = [
-    { id: 'dashboard', label: 'Mi Cuenta',  desc: 'Panel principal',      icon: LayoutDashboard, href: '/dashboard',           color: 'purple', show: true        },
-    { id: 'ferias',    label: 'Mi Feria',   desc: 'Gestionar tus ferias', icon: MapPin,           href: '/dashboard/organizer', color: 'orange', show: isOrganizer },
-    { id: 'store',     label: 'Mi Tienda',  desc: 'Tu espacio de ventas', icon: Store,            href: '/dashboard/store',     color: 'teal',   show: true        },
-    { id: 'favorites', label: 'Favoritos',  desc: 'Lo que guardaste',     icon: Heart,            href: '/dashboard/favorites', color: 'pink',   show: true        },
-    { id: 'reviews',   label: 'Reseñas',   desc: 'Tus comentarios',      icon: Star,             href: '/dashboard/reviews',   color: 'yellow', show: true        },
+    { id: 'dashboard', label: 'Mi Cuenta',  desc: 'Panel principal',           icon: LayoutDashboard, href: '/dashboard',           color: 'purple', show: true        },
+    { id: 'ferias',    label: 'Mi Feria',   desc: 'Gestionar tus ferias',      icon: MapPin,          href: '/dashboard/organizer', color: 'orange', show: isOrganizer },
+    { id: 'store',     label: 'Mi Tienda',  desc: 'Tu espacio de ventas',      icon: Store,           href: '/dashboard/store',     color: 'teal',   show: true        },
+    { id: 'empleos',   label: 'Empleos',    desc: 'Publicar y buscar empleo',  icon: Briefcase,       href: '/dashboard/empleos',   color: 'teal',   show: true        },
+    { id: 'favorites', label: 'Favoritos',  desc: 'Lo que guardaste',          icon: Heart,           href: '/dashboard/favorites', color: 'pink',   show: true        },
+    { id: 'reviews',   label: 'Reseñas',   desc: 'Tus comentarios',           icon: Star,            href: '/dashboard/reviews',   color: 'yellow', show: true        },
   ].filter(i => i.show)
 
   const renderUserModalContent = () => {

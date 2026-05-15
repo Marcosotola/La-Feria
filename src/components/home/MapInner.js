@@ -1,9 +1,20 @@
 'use client'
-import { MapContainer, TileLayer, Marker } from 'react-leaflet'
+import { useEffect } from 'react'
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-export default function MapInner({ onSelect, fairs = [] }) {
+function SetCenter({ coords }) {
+  const map = useMap()
+  useEffect(() => {
+    if (coords) {
+      map.flyTo([coords.lat, coords.lng], 14, { duration: 1.5 })
+    }
+  }, [coords, map])
+  return null
+}
+
+export default function MapInner({ onSelect, fairs = [], userCoords = null }) {
   const customIcon = L.divIcon({
     html: `
       <div style="position:relative;width:52px;height:64px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.45));cursor:pointer;">
@@ -38,19 +49,27 @@ export default function MapInner({ onSelect, fairs = [] }) {
     className: ''
   })
 
+  const userIcon = L.divIcon({
+    html: `<div style="width:18px;height:18px;background:#3B82F6;border:3px solid white;border-radius:50%;box-shadow:0 0 0 5px rgba(59,130,246,0.25);"></div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+    className: ''
+  })
+
   // Córdoba, Argentina por defecto
   const defaultCenter = [-31.417, -64.183]
-  
-  // Encontrar la primera feria con coordenadas válidas para centrar
+
   const firstFairWithCoords = fairs.find(f => f.location && typeof f.location === 'object' && f.location.lat)
-  const center = firstFairWithCoords 
-    ? [firstFairWithCoords.location.lat, firstFairWithCoords.location.lng] 
-    : defaultCenter
+  const center = userCoords
+    ? [userCoords.lat, userCoords.lng]
+    : firstFairWithCoords
+      ? [firstFairWithCoords.location.lat, firstFairWithCoords.location.lng]
+      : defaultCenter
 
   return (
-    <MapContainer 
-      center={center} 
-      zoom={13} 
+    <MapContainer
+      center={center}
+      zoom={13}
       style={{ height: '100%', width: '100%' }}
       scrollWheelZoom={false}
       zoomControl={false}
@@ -59,7 +78,11 @@ export default function MapInner({ onSelect, fairs = [] }) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      
+      <SetCenter coords={userCoords} />
+      {userCoords && (
+        <Marker position={[userCoords.lat, userCoords.lng]} icon={userIcon} />
+      )}
+
       {fairs.map((fair) => {
         // Solo renderizar si tiene coordenadas válidas
         if (!fair.location || typeof fair.location !== 'object' || !fair.location.lat) return null;

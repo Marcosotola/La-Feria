@@ -1,10 +1,33 @@
 'use client'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { MapPin, Calendar, Search, X, ChevronRight, Navigation, Pencil, Trash2 } from 'lucide-react'
+import { MapPin, Calendar, Search, X, ChevronRight, Navigation, Pencil, Trash2, Clock, Sun } from 'lucide-react'
 import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
 import { getAllFairs, deleteFair } from '@/lib/services/fairsService'
+
+const DAYS_ES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+const DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+
+function getTodayName() { return DAYS_ES[new Date().getDay()] }
+function getCurrentTime() {
+  const now = new Date()
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+}
+
+function fairOpenOnDay(fair, dayName) {
+  if (fair.schedule?.length) return fair.schedule.some(s => s.day === dayName)
+  return fair.days?.split(',').map(d => d.trim()).includes(dayName) ?? false
+}
+
+function fairOpenNow(fair) {
+  const dayName = getTodayName()
+  const currentTime = getCurrentTime()
+  if (fair.schedule?.length) {
+    return fair.schedule.some(s => s.day === dayName && s.from <= currentTime && currentTime <= s.to)
+  }
+  return false
+}
 
 function getDistanceKm(lat1, lng1, lat2, lng2) {
   const R = 6371
@@ -41,6 +64,7 @@ export default function FeriasPage() {
   const [loadingLocation, setLoadingLocation] = useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [activeFilter, setActiveFilter] = useState(null) // 'now' | 'today' | 'day:Lunes' | null
 
   const isAdmin = userData?.role === 'admin'
   const isOrganizer = isAdmin || userData?.role === 'organizer'
@@ -61,6 +85,18 @@ export default function FeriasPage() {
       setFairs(data)
       setLoading(false)
     })
+    if (navigator.geolocation) {
+      setLoadingLocation(true)
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+          setSort('distance')
+          setLoadingLocation(false)
+        },
+        () => setLoadingLocation(false),
+        { timeout: 8000 }
+      )
+    }
   }, [])
 
   const requestLocation = useCallback(() => {
@@ -100,6 +136,15 @@ export default function FeriasPage() {
       )
     }
 
+    if (activeFilter === 'now') {
+      list = list.filter(fairOpenNow)
+    } else if (activeFilter === 'today') {
+      list = list.filter(f => fairOpenOnDay(f, getTodayName()))
+    } else if (activeFilter?.startsWith('day:')) {
+      const dayName = activeFilter.slice(4)
+      list = list.filter(f => fairOpenOnDay(f, dayName))
+    }
+
     if (sort === 'az') {
       list.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'))
     } else if (sort === 'distance' && userCoords) {
@@ -115,7 +160,7 @@ export default function FeriasPage() {
     }
 
     return list
-  }, [fairs, search, sort, userCoords])
+  }, [fairs, search, sort, userCoords, activeFilter])
 
   const sortOptions = [
     { id: 'recent', label: 'Recientes' },
@@ -174,7 +219,7 @@ export default function FeriasPage() {
       <div className="max-w-2xl mx-auto px-4 -mt-10">
 
         {/* Sort chips */}
-        <div className="flex gap-2 mb-5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex gap-2 mb-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
           {sortOptions.map(opt => {
             const Icon = opt.icon
             const isActive = sort === opt.id
@@ -194,6 +239,68 @@ export default function FeriasPage() {
               </button>
             )
           })}
+        </div>
+
+        {/* Filter chips */}
+        <div className="flex gap-2 mb-5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          {/* Abierta ahora */}
+          <button
+            onClick={() => setActiveFilter(prev => prev === 'now' ? null : 'now')}
+            className={`shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold transition-all shadow-sm ${
+              activeFilter === 'now'
+                ? 'bg-green-500 text-white shadow-green-500/30 shadow-lg'
+                : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            Abiertas ahora
+          </button>
+
+          {/* Abierta hoy */}
+          <button
+            onClick={() => setActiveFilter(prev => prev === 'today' ? null : 'today')}
+            className={`shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold transition-all shadow-sm ${
+              activeFilter === 'today'
+                ? 'bg-brand-teal-500 text-white shadow-brand-teal-500/30 shadow-lg'
+                : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            <Sun className="w-3.5 h-3.5" />
+            Hoy ({DAYS_SHORT[new Date().getDay()]})
+          </button>
+
+          {/* Separador visual */}
+          <div className="w-px shrink-0 self-stretch bg-gray-200 dark:bg-gray-700 mx-1" />
+
+          {/* Selector por día */}
+          {DAYS_ES.map((day, i) => {
+            const key = `day:${day}`
+            const isActive = activeFilter === key
+            return (
+              <button
+                key={day}
+                onClick={() => setActiveFilter(prev => prev === key ? null : key)}
+                className={`shrink-0 px-3 py-2.5 rounded-full text-xs font-bold transition-all shadow-sm ${
+                  isActive
+                    ? 'bg-accent-500 text-white shadow-accent-500/30 shadow-lg'
+                    : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+                }`}
+              >
+                {DAYS_SHORT[i]}
+              </button>
+            )
+          })}
+
+          {/* Limpiar filtro */}
+          {activeFilter && (
+            <button
+              onClick={() => setActiveFilter(null)}
+              className="shrink-0 flex items-center gap-1 px-3 py-2.5 rounded-full text-xs font-bold text-gray-400 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 transition-all"
+            >
+              <X className="w-3 h-3" />
+              Limpiar
+            </button>
+          )}
         </div>
 
         {/* CTA compacto */}

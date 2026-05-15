@@ -21,9 +21,6 @@ import {
   List
 } from 'lucide-react';
 import { TIPOS_PUBLICACION } from '@/types/employment';
-import OfertaEmpleoCard from './OfertaEmpleoCard';
-import BusquedaEmpleoCard from './BusquedaEmpleoCard';
-import ServicioProfesionalCard from './ServicioProfesionalCard';
 
 export default function EmploymentList({
   publicaciones = [],
@@ -80,7 +77,6 @@ export default function EmploymentList({
   // Agrupar por tipo
   const ofertas = filteredPublicaciones.filter(p => p.tipoPublicacion === TIPOS_PUBLICACION.OFERTA_EMPLEO);
   const busquedas = filteredPublicaciones.filter(p => p.tipoPublicacion === TIPOS_PUBLICACION.BUSQUEDA_EMPLEO);
-  const servicios = filteredPublicaciones.filter(p => p.tipoPublicacion === TIPOS_PUBLICACION.SERVICIO_PROFESIONAL);
 
   const getActiveCount = () => {
     return publicaciones.filter(p => p.estado === 'activo').length;
@@ -184,13 +180,6 @@ export default function EmploymentList({
                 <UserIcon className="w-4 h-4 text-green-600" />
                 <span>Busco Empleo</span>
               </button>
-              <button
-                onClick={() => onCreateNew(TIPOS_PUBLICACION.SERVICIO_PROFESIONAL)}
-                className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
-              >
-                <Wrench className="w-4 h-4 text-purple-600" />
-                <span>Servicio Profesional</span>
-              </button>
             </div>
           </div>
         </div>
@@ -220,7 +209,6 @@ export default function EmploymentList({
               <option value="all">Todos los tipos</option>
               <option value={TIPOS_PUBLICACION.OFERTA_EMPLEO}>Ofertas de Empleo</option>
               <option value={TIPOS_PUBLICACION.BUSQUEDA_EMPLEO}>Búsquedas de Empleo</option>
-              <option value={TIPOS_PUBLICACION.SERVICIO_PROFESIONAL}>Servicios Profesionales</option>
             </select>
 
             <select
@@ -280,14 +268,7 @@ export default function EmploymentList({
                 className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
               >
                 <UserIcon className="w-4 h-4 mr-2" />
-                Busco
-              </button>
-              <button
-                onClick={() => onCreateNew(TIPOS_PUBLICACION.SERVICIO_PROFESIONAL)}
-                className="inline-flex items-center px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-              >
-                <Wrench className="w-4 h-4 mr-2" />
-                Servicio
+                Busco Empleo
               </button>
             </div>
           </div>
@@ -321,13 +302,6 @@ export default function EmploymentList({
             >
               <UserIcon className="w-4 h-4 mr-2" />
               Busco Empleo
-            </button>
-            <button
-              onClick={() => onCreateNew(TIPOS_PUBLICACION.SERVICIO_PROFESIONAL)}
-              className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
-            >
-              <Wrench className="w-4 h-4 mr-2" />
-              Ofrecer Servicio
             </button>
           </div>
         </div>

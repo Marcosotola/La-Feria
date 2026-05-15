@@ -150,5 +150,29 @@ service cloud.firestore {
       allow create: if isAuth(); // Validamos que sea organizador en el backend o aquí
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.creatorId || isAdmin());
     }
+
+    // ===== CONFIGURACIÓN (precios, ajustes globales) =====
+    match /config/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ===== PAGOS =====
+    match /featured_payments/{paymentId} {
+      allow read: if isAuth() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    match /subscription_payments/{paymentId} {
+      allow read: if isAuth() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    match /subscriptions/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isAdmin();
+    }
   }
 }

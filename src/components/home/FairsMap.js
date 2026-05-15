@@ -22,10 +22,18 @@ export default function FairsMap() {
   const [mounted, setMounted] = useState(false)
   const [selectedFair, setSelectedFair] = useState(null)
   const [fairs, setFairs] = useState([])
+  const [userCoords, setUserCoords] = useState(null)
 
   useEffect(() => {
     setMounted(true)
     loadFairs()
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {},
+        { timeout: 8000 }
+      )
+    }
   }, [])
 
   const loadFairs = async () => {
@@ -50,7 +58,7 @@ export default function FairsMap() {
 
       {/* Contenedor del Mapa (Clipped) */}
       <div className="absolute inset-0 rounded-[2.3rem] md:rounded-[2.8rem] overflow-hidden">
-        {mounted && <MapInner onSelect={setSelectedFair} fairs={fairs} />}
+        {mounted && <MapInner onSelect={setSelectedFair} fairs={fairs} userCoords={userCoords} />}
       </div>
 
       {/* CARD DE DETALLES FLOTANTE (Premium Slide-up) */}

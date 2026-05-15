@@ -9,19 +9,23 @@ const client = new MercadoPagoConfig({
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { 
-      productId, 
-      serviceId, 
+    const {
+      productId,
+      serviceId,
       employmentId,
-      userId, 
-      userName, 
-      productName, 
-      serviceName, 
+      userId,
+      userName,
+      productName,
+      serviceName,
       employmentTitle,
       employmentName,
-      amount, 
-      type 
+      amount,
+      featuredDays,
+      payerEmail,
+      type
     } = body;
+
+    const days = featuredDays ? parseInt(featuredDays) : 7;
 
     // Determinar tipo de item
     let itemType, itemId, itemName;
@@ -81,11 +85,11 @@ export async function POST(request) {
     // Descripción según el tipo
     let description;
     if (itemType === 'employment') {
-      description = `Destacar publicación de empleo por 7 días en La Feria`;
+      description = `Destacar publicación de empleo por ${days} días en La Feria`;
     } else if (itemType === 'service') {
-      description = `Destacar servicio por 7 días en La Feria`;
+      description = `Destacar servicio por ${days} días en La Feria`;
     } else {
-      description = `Destacar producto por 7 días en La Feria`;
+      description = `Destacar producto por ${days} días en La Feria`;
     }
 
     const preferenceData = {
@@ -109,14 +113,16 @@ export async function POST(request) {
       // External reference con formato: tipo_id_userId
       external_reference: `${itemType}_${itemId}_${userId}`,
       payer: {
-        name: userName || 'Usuario La Feria'
+        name: userName || 'Usuario La Feria',
+        ...(payerEmail ? { email: payerEmail } : {})
       },
       metadata: {
         item_id: itemId,
         user_id: userId,
         type: `featured_${itemType}`,
         amount: amount.toString(),
-        item_type: itemType
+        item_type: itemType,
+        featured_days: days.toString()
       }
     };
 

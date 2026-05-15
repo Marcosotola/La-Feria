@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { X, Send, Sparkles, ShoppingBag, Briefcase, Package, Mic, Search } from 'lucide-react';
+import { X, Send, Sparkles, ShoppingBag, Briefcase, Package, Mic, Search, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import SearchResults from '../search/SearchResults';
@@ -38,34 +38,46 @@ export default function ChatWithMily() {
   const searchContainerRef = useRef(null);
   const timeoutRef = useRef(null);
 
-  // Inicializar Speech Recognition
+  // Inicializar Speech Recognition con transcripción en tiempo real
   useEffect(() => {
     if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
+      recognitionRef.current.interimResults = true; // Mostrar texto mientras habla
       recognitionRef.current.lang = 'es-ES';
 
       recognitionRef.current.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setInputValue(transcript);
-        handleInputChange({ target: { value: transcript } }); // Trigger search behavior
-        setIsListening(false);
+        let interim = '';
+        let final = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const t = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            final += t;
+          } else {
+            interim += t;
+          }
+        }
+
+        // Mostrar texto en tiempo real (interim o final)
+        const current = final || interim;
+        setInputValue(current);
+
+        // Si es final, disparar búsqueda
+        if (final) {
+          handleInputChange({ target: { value: final } });
+          setIsListening(false);
+        }
       };
 
       recognitionRef.current.onerror = (event) => {
         console.error('Error de reconocimiento:', event.error);
         setIsListening(false);
-        
-        // Manejo amigable de errores comunes
         if (event.error === 'not-allowed') {
-          alert('El micrófono está bloqueado. Por favor, actívalo en la configuración de tu navegador para usar la búsqueda por voz.');
-        } else if (event.error === 'network') {
-          alert('Error de red. Verifica tu conexión a internet.');
+          alert('El micrófono está bloqueado. Activalo en la configuración del navegador.');
         }
       };
-
 
       recognitionRef.current.onend = () => {
         setIsListening(false);
@@ -259,76 +271,83 @@ export default function ChatWithMily() {
     switch (type) {
       case 'producto': return <ShoppingBag className="w-4 h-4" />;
       case 'servicio': return <Briefcase className="w-4 h-4" />;
-      case 'empleo': return <Package className="w-4 h-4" />;
-      default: return <ShoppingBag className="w-4 h-4" />;
+      case 'empleo':   return <Package className="w-4 h-4" />;
+      case 'feria':    return <MapPin className="w-4 h-4" />;
+      default:         return <ShoppingBag className="w-4 h-4" />;
     }
   };
 
   const getResultLink = (result) => {
+    if (result.type === 'feria') return `/ferias/${result.id}`;
     const slug = result.tiendaInfo?.slug || result.storeSlug || 'tienda';
     if (result.type === 'producto') return `/tienda/${slug}/producto/${result.id}`;
     if (result.type === 'servicio') return `/tienda/${slug}/servicios/${result.id}`;
-    if (result.type === 'empleo') return `/tienda/${slug}/empleos/${result.id}`;
+    if (result.type === 'empleo')   return `/tienda/${slug}/empleos/${result.id}`;
     return '#';
   };
 
   return (
     <div ref={searchContainerRef} className="relative w-full max-w-md mx-auto px-2">
-      {/* Barra de búsqueda Unificada con UX Mejorada */}
+      {/* Barra de búsqueda */}
       <div
         className={cn(
-          "flex items-center bg-white dark:bg-gray-800 rounded-3xl p-1.5 border-2 transition-all duration-500 shadow-xl shadow-brand-teal-500/10",
+          "flex items-center bg-white dark:bg-gray-800 rounded-2xl border transition-all duration-500 shadow-lg",
           isOpen ? 'opacity-0 pointer-events-none scale-95 absolute' : 'opacity-100 relative scale-100',
-          "border-brand-teal-500/30 focus-within:border-brand-teal-500 focus-within:ring-4 focus-within:ring-brand-teal-500/10"
+          "border-gray-200 dark:border-gray-700 focus-within:border-brand-teal-400 focus-within:ring-2 focus-within:ring-brand-teal-500/15"
         )}
       >
-        {/* Lado Izquierdo: Mily con Invitación al Chat */}
-        <button 
+        {/* ── Zona izquierda: Chat IA ── */}
+        <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="relative flex-shrink-0 group flex items-center gap-2 pl-1 pr-3 py-1 hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/20 rounded-2xl transition-all duration-300"
+          className="relative flex-shrink-0 group flex items-center gap-2 px-3 py-2.5 bg-gray-50 dark:bg-gray-700/60 hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/30 rounded-l-2xl transition-all duration-300 border-r border-gray-200 dark:border-gray-600"
         >
           <div className="relative">
-            <div className="w-10 h-10 bg-gradient-to-br from-brand-teal-400 to-brand-teal-600 rounded-full flex items-center justify-center shadow-md group-hover:rotate-12 transition-transform duration-300">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-gradient-to-br from-brand-teal-400 to-brand-teal-600 rounded-full flex items-center justify-center shadow-sm group-hover:rotate-12 transition-transform duration-300">
+              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9c.83 0 1.5-.67 1.5-1.5S7.83 8 7 8s-1.5.67-1.5 1.5S6.17 11 7 11zm10 0c.83 0 1.5-.67 1.5-1.5S17.83 8 17 8s-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-5 5c2.33 0 4.32-1.45 5.12-3.5H6.88c.8 2.05 2.79 3.5 5.12 3.5z" />
               </svg>
             </div>
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-md border border-brand-teal-100">
-              <Sparkles className="w-2.5 h-2.5 text-brand-teal-500 animate-pulse" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center shadow border border-brand-teal-100 dark:border-brand-teal-800">
+              <Sparkles className="w-2 h-2 text-brand-teal-500 animate-pulse" />
             </div>
           </div>
-          <div className="flex flex-col items-start leading-none hidden sm:flex">
-            <span className="text-[10px] font-black text-brand-teal-600 dark:text-brand-teal-400 uppercase tracking-tighter">Chat</span>
-            <span className="text-[9px] font-bold text-gray-400 uppercase">IA</span>
+          <div className="hidden sm:flex flex-col items-start leading-none">
+            <span className="text-[9px] font-black text-brand-teal-600 dark:text-brand-teal-400 uppercase tracking-tight">Chat</span>
+            <span className="text-[8px] font-bold text-gray-400 dark:text-gray-500 uppercase">IA</span>
           </div>
-          
-          {/* Tooltip de invitación (Solo móvil o desktop sutil) */}
+
           {!inputValue && (
-            <div className="absolute -top-10 left-0 bg-brand-teal-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg animate-bounce shadow-lg pointer-events-none whitespace-nowrap">
+            <div className="absolute -top-9 left-0 bg-brand-teal-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg animate-bounce shadow-lg pointer-events-none whitespace-nowrap">
               Pregúntame ✨
               <div className="absolute -bottom-1 left-4 w-2 h-2 bg-brand-teal-600 rotate-45" />
             </div>
           )}
-
         </button>
 
-        {/* Separador vertical sutil */}
-        <div className="w-px h-8 bg-gray-100 dark:bg-gray-700 mx-1"></div>
-
-        {/* Input con Placeholder Dinámico */}
-        <div className="flex-1 min-w-0 px-2 relative">
+        {/* ── Zona central: Input ── */}
+        <div className="flex-1 min-w-0 relative flex items-center">
           <input
             ref={inputRef}
             type="text"
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyPress}
-            placeholder="Busca o chatea con la IA..."
-            className="w-full py-2.5 outline-none bg-transparent text-sm font-semibold text-gray-800 dark:text-gray-100 placeholder:text-gray-400"
+            placeholder={isListening ? 'Escuchando...' : 'Buscar productos, ferias, empleos...'}
+            className={cn(
+              "w-full px-3 py-3 outline-none bg-transparent text-sm text-gray-800 dark:text-gray-100",
+              "placeholder:text-gray-300 dark:placeholder:text-gray-500 placeholder:font-normal",
+              isListening && "placeholder:text-red-400 dark:placeholder:text-red-400"
+            )}
           />
-          
-          {/* Barra de Carga Sutil (Solo aparece al buscar) */}
+          {inputValue && !isListening && (
+            <button
+              onClick={() => setInputValue('')}
+              className="flex-shrink-0 mr-1 p-1 text-gray-300 hover:text-gray-400 dark:hover:text-gray-400 transition-colors rounded-full"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
           {isSearching && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-teal-100 dark:bg-brand-teal-900 overflow-hidden rounded-full">
               <div className="h-full bg-brand-teal-500 animate-progress-fast" />
@@ -336,37 +355,36 @@ export default function ChatWithMily() {
           )}
         </div>
 
-        {/* Acciones Consolidadas (Minimalistas) */}
-        <div className="flex items-center gap-0.5 pr-1">
-          {/* Botón Borrar (Solo si hay texto) */}
-          {inputValue && (
-            <button
-              onClick={() => setInputValue('')}
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-              title="Borrar"
-            >
-              <X className="w-4 h-4" />
-            </button>
+        {/* ── Zona derecha: Micrófono ── */}
+        <button
+          onClick={toggleListening}
+          className={cn(
+            "relative flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2.5 rounded-r-2xl transition-all duration-300 border-l border-gray-200 dark:border-gray-600",
+            isListening
+              ? 'bg-red-50 dark:bg-red-900/20'
+              : 'bg-gray-50 dark:bg-gray-700/60 hover:bg-brand-teal-50 dark:hover:bg-brand-teal-900/30'
           )}
-
-          {/* Micrófono para Búsqueda por Voz - Diseño de Botón Mejorado */}
-          <button
-            onClick={toggleListening}
-            className={cn(
-              "flex flex-col items-center justify-center p-2 rounded-2xl transition-all duration-300 min-w-[50px] border-2 shadow-sm",
-              isListening 
-                ? 'bg-red-500 border-red-500 text-white scale-110 shadow-red-500/20' 
-                : 'bg-brand-teal-50 dark:bg-brand-teal-900/20 border-brand-teal-100 dark:border-brand-teal-800 text-brand-teal-600 hover:border-brand-teal-300 hover:bg-brand-teal-100/50 dark:hover:bg-brand-teal-800/40 hover:shadow-md'
-            )}
-            title="Buscar por voz"
-          >
-            <Mic className={cn("w-4 h-4", isListening ? "text-white" : "text-brand-teal-600")} />
-            <span className={cn("text-[8px] font-black uppercase mt-0.5 tracking-tighter", isListening ? "text-white" : "text-brand-teal-700")}>
-              Voz
-            </span>
-          </button>
-
-        </div>
+          title="Buscar por voz"
+        >
+          {isListening && (
+            <span className="absolute inset-0 rounded-r-2xl animate-ping bg-red-400/15 pointer-events-none" />
+          )}
+          {/* Círculo del mic — mismo tamaño que el de IA */}
+          <div className={cn(
+            "w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all duration-300",
+            isListening
+              ? 'bg-red-500'
+              : 'bg-gradient-to-br from-brand-teal-400 to-brand-teal-600'
+          )}>
+            <Mic className={cn("w-4 h-4 text-white", isListening && "animate-pulse")} />
+          </div>
+          <span className={cn(
+            "text-[8px] font-black uppercase tracking-tight leading-none",
+            isListening ? "text-red-500" : "text-brand-teal-600 dark:text-brand-teal-400"
+          )}>
+            {isListening ? 'Parar' : 'Voz'}
+          </span>
+        </button>
       </div>
 
       {/* Estilo para la animación de carga */}

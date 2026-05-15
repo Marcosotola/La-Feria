@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import DashboardTopNavigation from '@/components/layout/DashboardTopNavigation'
 import {
   User, Heart, MessageSquare, Store,
-  MapPin, ChevronRight, Loader2
+  MapPin, ChevronRight, Loader2, Briefcase
 } from 'lucide-react'
 
 const ROLE_META = {
@@ -90,6 +90,14 @@ export default function Dashboard() {
 
         {/* ── Sección Personal — todos ── */}
         <DashSection title="Personal">
+          <DashCard
+            icon={Briefcase}
+            color="indigo"
+            title="Mis Empleos"
+            description="Publicaciones de empleo y CV"
+            href="/dashboard/empleos"
+            router={router}
+          />
           <DashCard
             icon={User}
             color="blue"

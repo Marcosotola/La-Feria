@@ -24,7 +24,7 @@ import EmploymentList from './EmploymentList';
 import OfertaEmpleoCard from './OfertaEmpleoCard';
 import BusquedaEmpleoCard from './BusquedaEmpleoCard';
 import FeaturedEmploymentButton from './FeaturedEmploymentButton';
-import { ArrowLeft, Briefcase, X, UserSearch } from 'lucide-react';
+import { ArrowLeft, Briefcase, X } from 'lucide-react';
 import { deleteImage } from '@/lib/actions/cloudinary';
 import { extractPublicId } from '@/lib/helpers/cloudinaryHelpers';
 
@@ -284,36 +284,13 @@ export default function EmploymentManager({ storeId, storeData }) {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {view === 'list' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  Gestión de Empleos
-                </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
-                  Administra tus publicaciones de empleo
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Botones de crear nuevas publicaciones - SOLO OFERTA Y BÚSQUEDA */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <button
-              onClick={() => handleCreateNew(TIPOS_PUBLICACION.OFERTA_EMPLEO)}
-              className="flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              <Briefcase className="w-5 h-5" />
-              <span>Nueva Oferta de Empleo</span>
-            </button>
-
-            <button
-              onClick={() => handleCreateNew(TIPOS_PUBLICACION.BUSQUEDA_EMPLEO)}
-              className="flex items-center justify-center gap-3 px-6 py-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
-            >
-              <UserSearch className="w-5 h-5" />
-              <span>Busco Empleo</span>
-            </button>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Mis Publicaciones de Empleo
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Gestioná tus ofertas, búsquedas y servicios profesionales
+            </p>
           </div>
 
           <EmploymentList

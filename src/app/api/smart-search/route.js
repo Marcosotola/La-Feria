@@ -1,6 +1,6 @@
 // src/app/api/smart-search/route.js
 import { NextResponse } from 'next/server';
-import { analyzeSearchIntent } from '@/lib/ai/openaiService';
+import { analyzeSearchIntent } from '@/lib/ai/geminiService';
 import { db } from '@/lib/firebase/config';
 import { collection, query, getDocs, limit } from 'firebase/firestore';
 
@@ -33,27 +33,21 @@ export async function POST(request) {
       productos: [],
       servicios: [],
       empleos: [],
+      ferias: [],
     };
 
-    // Buscar productos
-    if (analysis.tipo_busqueda.includes('productos')) {
-      results.productos = await searchProducts(searchQuery, analysis);
-    }
-
-    // Buscar servicios
-    if (analysis.tipo_busqueda.includes('servicios')) {
-      results.servicios = await searchServices(searchQuery, analysis);
-    }
-
-    // Buscar empleos
-    if (analysis.tipo_busqueda.includes('empleos')) {
-      results.empleos = await searchJobs(searchQuery, analysis);
-    }
+    await Promise.all([
+      analysis.tipo_busqueda.includes('productos') && searchProducts(searchQuery, analysis).then(r => results.productos = r),
+      analysis.tipo_busqueda.includes('servicios') && searchServices(searchQuery, analysis).then(r => results.servicios = r),
+      analysis.tipo_busqueda.includes('empleos')   && searchJobs(searchQuery, analysis).then(r => results.empleos = r),
+      analysis.tipo_busqueda.includes('ferias')    && searchFairs(searchQuery, analysis).then(r => results.ferias = r),
+    ]);
 
     console.log('✅ Resultados encontrados:', {
       productos: results.productos.length,
       servicios: results.servicios.length,
       empleos: results.empleos.length,
+      ferias: results.ferias.length,
     });
 
     return NextResponse.json(results);
@@ -331,6 +325,34 @@ async function searchJobs(searchQuery, analysis) {
 
   } catch (error) {
     console.error('Error buscando empleos:', error);
+    return [];
+  }
+}
+
+// Función para buscar ferias
+async function searchFairs(searchQuery, analysis) {
+  try {
+    console.log('🔎 Buscando ferias...');
+
+    const snapshot = await getDocs(query(collection(db, 'ferias'), limit(100)));
+    let ferias = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(f => f.estado !== 'inactivo' && f.estado !== 'cancelada');
+
+    console.log(`🎪 ${ferias.length} ferias activas`);
+
+    const terms = searchQuery.toLowerCase().split(' ').filter(t => t.length > 2);
+
+    ferias = ferias.filter(f => {
+      const text = `${f.nombre||''} ${f.descripcion||''} ${f.tipo||''} ${f.categoria||''} ${f.ubicacion||''}`.toLowerCase();
+      return terms.some(t => text.includes(t))
+        || analysis.palabras_clave?.some(k => text.includes(k.toLowerCase()))
+        || analysis.categorias_ferias?.some(c => text.includes(c.replace(/_/g, ' ')));
+    });
+
+    console.log(`✅ ${ferias.length} ferias coincidentes`);
+    return ferias.slice(0, 10);
+  } catch (error) {
+    console.error('Error buscando ferias:', error);
     return [];
   }
 }

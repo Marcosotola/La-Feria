@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import {
   BarChart3, User, ChevronDown, ChevronRight, Store, ExternalLink, House,
-  Heart, Star, ShoppingBag, Menu, X, Shield, MapPin
+  Heart, Star, ShoppingBag, Menu, X, Shield, MapPin, Briefcase
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -64,7 +64,7 @@ export default function DashboardTopNavigation() {
     { id: 'dashboard', label: 'Panel',     icon: BarChart3,   href: '/dashboard',               color: 'purple', desc: 'Vista general',             showAlways: true              },
     { id: 'profile',   label: 'Perfil',    icon: User,        href: '/dashboard/profile',       color: 'blue',   desc: 'Información personal',      showAlways: true              },
     { id: 'store',     label: 'Tienda',    icon: Store,       href: '/dashboard/store',         color: 'orange', desc: 'Gestiona tu negocio',       showAlways: true              },
-    { id: 'products',  label: 'Productos', icon: ShoppingBag, href: '/dashboard/store/products',color: 'green',  desc: 'Ver todos tus productos',   showAlways: false, mobileOnly: true },
+    { id: 'empleos',   label: 'Empleos',   icon: Briefcase,   href: '/dashboard/empleos',       color: 'teal',   desc: 'Portal de empleos',         showAlways: true              },
     { id: 'favorites', label: 'Favoritos', icon: Heart,       href: '/dashboard/favorites',     color: 'pink',   desc: 'Lo que guardaste',          showAlways: true              },
     { id: 'reviews',   label: 'Reseñas',  icon: Star,        href: '/dashboard/reviews',       color: 'yellow', desc: 'Tus comentarios',           showAlways: true              },
   ]
@@ -79,6 +79,7 @@ export default function DashboardTopNavigation() {
     blue:   'bg-blue-100   dark:bg-blue-900/30     text-blue-600   dark:text-blue-400',
     orange: 'bg-orange-100 dark:bg-orange-900/30   text-orange-600 dark:text-orange-400',
     green:  'bg-green-100  dark:bg-green-900/30    text-green-600  dark:text-green-400',
+    teal:   'bg-teal-100   dark:bg-teal-900/30     text-teal-600   dark:text-teal-400',
     pink:   'bg-pink-100   dark:bg-pink-900/30     text-pink-600   dark:text-pink-400',
     yellow: 'bg-yellow-100 dark:bg-yellow-900/30   text-yellow-600 dark:text-yellow-400',
     red:    'bg-red-100    dark:bg-red-900/30      text-red-600    dark:text-red-400',
@@ -106,6 +107,10 @@ export default function DashboardTopNavigation() {
       green: {
         active: 'border-green-500 text-green-600 dark:text-green-400',
         inactive: 'border-transparent text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400'
+      },
+      teal: {
+        active: 'border-teal-500 text-teal-600 dark:text-teal-400',
+        inactive: 'border-transparent text-gray-600 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400'
       },
       pink: {
         active: 'border-pink-500 text-pink-600 dark:text-pink-400',

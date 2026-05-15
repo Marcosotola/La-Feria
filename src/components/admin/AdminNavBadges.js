@@ -14,7 +14,8 @@ import {
   ChevronRight,
   LayoutDashboard,
   MapPin,
-  Store
+  Store,
+  DollarSign
 } from 'lucide-react';
 
 export default function AdminNavBadges() {
@@ -96,6 +97,14 @@ export default function AdminNavBadges() {
       color: 'cyan',
       description: 'Notificaciones',
       href: '/admin/mensajeria'
+    },
+    {
+      id: 'precios',
+      name: 'Precios',
+      icon: DollarSign,
+      color: 'red',
+      description: 'Gestionar precios',
+      href: '/admin/configuracion/precios'
     }
   ];
 

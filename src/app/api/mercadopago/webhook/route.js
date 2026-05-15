@@ -208,8 +208,9 @@ export async function POST(request) {
             itemLabel = 'producto';
           }
           
+          const featuredDays = parseInt(paymentData.metadata?.featured_days) || 7;
           const featuredUntil = new Date();
-          featuredUntil.setDate(featuredUntil.getDate() + 7);
+          featuredUntil.setDate(featuredUntil.getDate() + featuredDays);
 
           try {
             console.log(`🔄 Updating ${itemLabel} in Firebase...`);
