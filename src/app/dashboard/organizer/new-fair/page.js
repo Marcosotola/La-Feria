@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import {
@@ -13,12 +13,28 @@ import {
   X,
   Search,
   CheckCircle2,
-  Plus
+  Plus,
+  Navigation,
+  MousePointerClick,
+  Info
 } from 'lucide-react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { storage } from '@/lib/firebase/config'
 import { createFair } from '@/lib/services/fairsService'
+
+const LocationPickerMap = dynamic(
+  () => import('@/components/location/LocationPickerMap'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[320px] bg-gray-100 dark:bg-gray-800 animate-pulse flex items-center justify-center rounded-b-2xl">
+        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+      </div>
+    )
+  }
+)
 
 const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
@@ -30,21 +46,134 @@ export default function NewFairPage() {
   const router = useRouter()
 
   const [loading, setLoading] = useState(false)
-  const [searchingAddress, setSearchingAddress] = useState(false)
-  const [addressFound, setAddressFound] = useState(false)
 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     locationName: '',
-    address: '',
-    lat: -31.417,
-    lng: -64.183
+    address: ''
   })
+
+  // Location state
+  const [pinPosition, setPinPosition] = useState(null)       // [lat, lng] o null
+  const [resolvedAddress, setResolvedAddress] = useState('')  // dirección resuelta
+  const [reverseGeocoding, setReverseGeocoding] = useState(false)
+  const [locationConfirmed, setLocationConfirmed] = useState(false)
+  const [flyKey, setFlyKey] = useState(0)
+  const [flyZoom, setFlyZoom] = useState(14)
+
+  // Search
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searching, setSearching] = useState(false)
 
   // Schedule builder
   const [schedule, setSchedule] = useState([])
   const [pending, setPending] = useState({ day: '', from: '', to: '' })
+
+  // Images
+  const [imageFiles, setImageFiles] = useState([])
+  const [previews, setPreviews] = useState([])
+
+  // On mount: center map on user's geolocation
+  useEffect(() => {
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude
+        const lng = pos.coords.longitude
+        setPinPosition([lat, lng])
+        setFlyZoom(14)
+        setFlyKey(k => k + 1)
+        // Don't set locationConfirmed — user still needs to interact
+      },
+      () => {} // silently fall back to default Córdoba center
+    )
+  }, [])
+
+  const reverseGeocode = async (lat, lng) => {
+    setReverseGeocoding(true)
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
+        { headers: { 'Accept-Language': 'es' } }
+      )
+      const data = await res.json()
+      if (data?.display_name) {
+        setResolvedAddress(data.display_name)
+        // Build a short address for storage
+        const a = data.address || {}
+        const parts = [
+          a.road || a.pedestrian || a.path || a.square || '',
+          a.house_number || '',
+          a.suburb || a.neighbourhood || a.quarter || '',
+          a.city || a.town || a.village || a.municipality || ''
+        ].filter(Boolean)
+        // Remove consecutive duplicates from Nominatim quirks
+        const shortAddr = [...new Set(parts)].join(', ')
+        setFormData(prev => ({ ...prev, address: shortAddr || data.display_name }))
+      }
+    } catch {} finally {
+      setReverseGeocoding(false)
+    }
+  }
+
+  const handleMapClick = (lat, lng) => {
+    setPinPosition([lat, lng])
+    setLocationConfirmed(true)
+    setSearchResults([])
+    reverseGeocode(lat, lng)
+  }
+
+  const handlePinDrag = (lat, lng) => {
+    setPinPosition([lat, lng])
+    setLocationConfirmed(true)
+    reverseGeocode(lat, lng)
+  }
+
+  const searchAddress = async () => {
+    if (!searchQuery.trim()) return
+    setSearching(true)
+    setSearchResults([])
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=ar&limit=5&addressdetails=1`,
+        { headers: { 'Accept-Language': 'es' } }
+      )
+      const data = await res.json()
+      if (data?.length > 0) {
+        setSearchResults(data)
+      } else {
+        alert('No se encontraron resultados. Probá agregando el barrio o la ciudad.')
+      }
+    } catch {
+      alert('Error al buscar. Revisá tu conexión.')
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const selectResult = (result) => {
+    const lat = parseFloat(result.lat)
+    const lng = parseFloat(result.lon)
+    setPinPosition([lat, lng])
+    setResolvedAddress(result.display_name)
+    setFormData(prev => ({ ...prev, address: result.display_name }))
+    setLocationConfirmed(true)
+    setSearchResults([])
+    setSearchQuery('')
+    setFlyZoom(16)
+    setFlyKey(k => k + 1)
+  }
+
+  const clearLocation = () => {
+    setLocationConfirmed(false)
+    setResolvedAddress('')
+    setFormData(prev => ({ ...prev, address: '' }))
+    setSearchQuery('')
+    setSearchResults([])
+    // keep pinPosition so map stays centered
+  }
 
   const addEntry = () => {
     if (!pending.day || !pending.from || !pending.to) return
@@ -55,10 +184,6 @@ export default function NewFairPage() {
   const removeEntry = (index) => {
     setSchedule(prev => prev.filter((_, i) => i !== index))
   }
-
-  // Imágenes
-  const [imageFiles, setImageFiles] = useState([])
-  const [previews, setPreviews] = useState([])
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files)
@@ -75,26 +200,6 @@ export default function NewFairPage() {
     setPreviews(prev => prev.filter((_, i) => i !== index))
   }
 
-  const searchAddress = async () => {
-    if (!formData.address) return
-    setSearchingAddress(true)
-    setAddressFound(false)
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}`)
-      const data = await res.json()
-      if (data?.length > 0) {
-        setFormData(prev => ({ ...prev, lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }))
-        setAddressFound(true)
-      } else {
-        alert('No se encontró la dirección. Intentá ser más específico (Calle, Número, Ciudad)')
-      }
-    } catch {
-      alert('Error al buscar la dirección')
-    } finally {
-      setSearchingAddress(false)
-    }
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!user) return
@@ -102,8 +207,8 @@ export default function NewFairPage() {
       alert('Subí al menos una foto de la feria')
       return
     }
-    if (!addressFound) {
-      alert("Primero buscá y confirmá la dirección con 'Buscar Ubicación'")
+    if (!locationConfirmed || !pinPosition) {
+      alert('Confirmá la ubicación tocando el mapa o usando el buscador')
       return
     }
     if (schedule.length === 0) {
@@ -121,7 +226,6 @@ export default function NewFairPage() {
         })
       )
 
-      // Derivar string de días para display
       const uniqueDays = [...new Set(schedule.map(e => e.day))]
       const daysStr = uniqueDays.join(', ')
 
@@ -135,7 +239,7 @@ export default function NewFairPage() {
         hours: '',
         image: imageUrls[0],
         gallery: imageUrls,
-        location: { lat: formData.lat, lng: formData.lng }
+        location: { lat: pinPosition[0], lng: pinPosition[1] }
       }, user.uid)
 
       if (result.success) {
@@ -222,43 +326,156 @@ export default function NewFairPage() {
               </div>
             </div>
 
-            {/* Dirección */}
+            {/* UBICACIÓN */}
             <div className="space-y-4">
-              <label className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.1em]">Ubicación Exacta</label>
-              <div className="flex flex-col md:flex-row gap-4">
+              <label className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.1em]">Ubicación en el Mapa</label>
+
+              {/* Instrucciones */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 space-y-2">
+                <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-bold text-xs uppercase tracking-wide">
+                  <Info className="w-4 h-4 shrink-0" />
+                  Cómo marcar la ubicación
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+                  <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0 mt-0.5">
+                      <MousePointerClick className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-blue-700 dark:text-blue-300">Tocá el mapa</p>
+                      <p className="text-[11px] text-blue-500 dark:text-blue-400 leading-snug mt-0.5">Hacé clic directo en el lugar exacto. El pin se coloca ahí y se detecta la dirección automáticamente.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0 mt-0.5">
+                      <Search className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-blue-700 dark:text-blue-300">Buscá por nombre</p>
+                      <p className="text-[11px] text-blue-500 dark:text-blue-400 leading-snug mt-0.5">Escribí el nombre de una plaza, calle o lugar y elegí el resultado correcto de la lista.</p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[11px] text-blue-500 dark:text-blue-400 pt-1 border-t border-blue-200 dark:border-blue-700">
+                  Una vez ubicado el pin, podés arrastrarlo para ajustar la posición exacta.
+                </p>
+              </div>
+
+              {/* Buscador */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1 relative">
-                  <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   <input
-                    required
                     type="text"
-                    placeholder="Calle, número, ciudad"
-                    value={formData.address}
-                    onChange={e => { setFormData({ ...formData, address: e.target.value }); setAddressFound(false) }}
-                    className={`${inputClass} pl-14`}
+                    placeholder="Plaza de las Américas, Calle Colón 123, Terminal..."
+                    value={searchQuery}
+                    onChange={e => { setSearchQuery(e.target.value); setSearchResults([]) }}
+                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), searchAddress())}
+                    className="w-full pl-12 pr-5 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-brand-teal-500 transition-all text-sm text-gray-900 dark:text-white placeholder:text-gray-400"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={searchAddress}
-                  disabled={searchingAddress}
-                  className={`px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all ${addressFound ? 'bg-green-500 text-white' : 'bg-brand-teal-600 text-white shadow-lg shadow-brand-teal-600/20'}`}
+                  disabled={searching || !searchQuery.trim()}
+                  className="px-6 py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 bg-brand-teal-600 text-white shadow-lg shadow-brand-teal-600/20 disabled:opacity-50 transition-all shrink-0"
                 >
-                  {searchingAddress ? <Loader2 className="w-5 h-5 animate-spin" /> : addressFound ? <CheckCircle2 className="w-5 h-5" /> : <Search className="w-5 h-5" />}
-                  {addressFound ? 'Ubicación Lista' : 'Buscar Ubicación'}
+                  {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  Buscar
                 </button>
               </div>
-              {addressFound && (
-                <p className="text-[10px] text-green-600 font-bold uppercase px-4">✓ Coordenadas detectadas: {formData.lat.toFixed(4)}, {formData.lng.toFixed(4)}</p>
+
+              {/* Resultados de búsqueda */}
+              {searchResults.length > 0 && (
+                <div className="rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg">
+                  <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-100 dark:border-gray-700">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{searchResults.length} resultados — elegí el correcto</p>
+                  </div>
+                  {searchResults.map((result, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => selectResult(result)}
+                      className="w-full text-left px-4 py-3.5 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors flex items-start gap-3 group border-b border-gray-50 dark:border-gray-800 last:border-0"
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center shrink-0 mt-0.5">
+                        <MapPin className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-snug line-clamp-2">{result.display_name}</p>
+                        {result.address?.state && (
+                          <p className="text-[11px] text-gray-400 mt-0.5">{result.address.state}</p>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               )}
+
+              {/* Mapa */}
+              <div className={`rounded-2xl overflow-hidden border-2 transition-colors ${locationConfirmed ? 'border-teal-400 dark:border-teal-600' : 'border-gray-200 dark:border-gray-700'}`}>
+                {/* Header del mapa */}
+                <div className={`px-4 py-3 flex items-center gap-3 transition-colors ${locationConfirmed ? 'bg-teal-50 dark:bg-teal-900/20' : 'bg-gray-50 dark:bg-gray-800/60'}`}>
+                  {locationConfirmed ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-teal-700 dark:text-teal-300">Ubicación confirmada</p>
+                        {reverseGeocoding ? (
+                          <p className="text-[11px] text-teal-500 flex items-center gap-1 mt-0.5">
+                            <Loader2 className="w-3 h-3 animate-spin" /> Detectando dirección...
+                          </p>
+                        ) : resolvedAddress ? (
+                          <p className="text-[11px] text-teal-600 dark:text-teal-400 truncate mt-0.5">{resolvedAddress}</p>
+                        ) : null}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={clearLocation}
+                        className="text-teal-400 hover:text-red-500 transition-colors shrink-0 p-1"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Navigation className="w-4 h-4 text-gray-400 shrink-0" />
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Tocá el mapa para colocar el pin en la ubicación de tu feria
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {/* Mapa */}
+                <LocationPickerMap
+                  position={pinPosition}
+                  flyKey={flyKey}
+                  flyZoom={flyZoom}
+                  onPositionChange={handlePinDrag}
+                  onMapClick={handleMapClick}
+                />
+
+                {/* Tip arrastrar */}
+                {locationConfirmed && (
+                  <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/60 border-t border-gray-100 dark:border-gray-700">
+                    <p className="text-[10px] text-gray-400 text-center">
+                      Podés arrastrar el pin para ajustar la posición exacta
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Días y Horarios */}
             <div className="space-y-3">
-              <label className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.1em]">Días y Horarios</label>
+              <div>
+                <label className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.1em]">Días y Horarios</label>
+                <p className="text-[11px] text-gray-400 mt-1">Agregá cada día con su horario. Podés agregar varios días distintos.</p>
+              </div>
 
-              {/* Entradas agregadas */}
               {schedule.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-1">
+                <div className="flex flex-wrap gap-2">
                   {schedule.map((entry, i) => (
                     <div key={i} className="flex items-center gap-2 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 rounded-xl px-3 py-2">
                       <Calendar className="w-3.5 h-3.5 text-teal-500 shrink-0" />
@@ -273,7 +490,6 @@ export default function NewFairPage() {
                 </div>
               )}
 
-              {/* Selector de nuevo día */}
               <div className="flex flex-col sm:flex-row gap-3 p-4 bg-gray-50 dark:bg-gray-800/60 rounded-2xl">
                 <select
                   value={pending.day}
