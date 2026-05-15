@@ -63,7 +63,7 @@ export default function DashboardTopNavigation() {
     { id: 'home',      label: 'Inicio',    icon: House,       href: '/',                        color: 'gray',   desc: 'Ir a la página principal',  showAlways: true              },
     { id: 'dashboard', label: 'Panel',     icon: BarChart3,   href: '/dashboard',               color: 'purple', desc: 'Vista general',             showAlways: true              },
     { id: 'profile',   label: 'Perfil',    icon: User,        href: '/dashboard/profile',       color: 'blue',   desc: 'Información personal',      showAlways: true              },
-    { id: 'store',     label: 'Tienda',    icon: Store,       href: '/dashboard/store',         color: 'orange', desc: 'Gestiona tu negocio',       showAlways: true              },
+    { id: 'store',     label: 'Tienda',    icon: Store,       href: '/dashboard/tienda',        color: 'orange', desc: 'Gestiona tu negocio',       showAlways: true              },
     { id: 'empleos',   label: 'Empleos',   icon: Briefcase,   href: '/dashboard/empleos',       color: 'teal',   desc: 'Portal de empleos',         showAlways: true              },
     { id: 'favorites', label: 'Favoritos', icon: Heart,       href: '/dashboard/favorites',     color: 'pink',   desc: 'Lo que guardaste',          showAlways: true              },
     { id: 'reviews',   label: 'Reseñas',  icon: Star,        href: '/dashboard/reviews',       color: 'yellow', desc: 'Tus comentarios',           showAlways: true              },
@@ -192,7 +192,7 @@ export default function DashboardTopNavigation() {
             {/* Ver Tienda */}
             {storeUrl && (
               <a
-                href={`https://laferia.vercel.app/tienda/${storeUrl}`}
+                href={`/tienda/${storeUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg text-sm font-medium transition-colors ml-4 flex-shrink-0 cursor-pointer"
@@ -234,7 +234,7 @@ export default function DashboardTopNavigation() {
             {/* Ver Tienda */}
             {storeUrl && (
               <a
-                href={`https://laferia.vercel.app/tienda/${storeUrl}`}
+                href={`/tienda/${storeUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-3 flex items-center gap-1 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg text-xs font-medium transition-colors flex-shrink-0 cursor-pointer"
@@ -273,7 +273,7 @@ export default function DashboardTopNavigation() {
             {/* Ver Tienda */}
             {storeUrl && (
               <a
-                href={`https://laferia.vercel.app/tienda/${storeUrl}`}
+                href={`/tienda/${storeUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-3 flex items-center gap-1.5 px-3 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg text-xs font-medium transition-colors cursor-pointer"

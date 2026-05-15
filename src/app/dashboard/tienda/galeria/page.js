@@ -4,7 +4,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import DashboardTopNavigation from '@/components/layout/DashboardTopNavigation';
 import {
   Image as ImageIcon,
   Plus,
@@ -292,8 +291,7 @@ export default function GaleriaManagementPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <DashboardTopNavigation />
+    <div>
 
       {/* Header */}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600">
