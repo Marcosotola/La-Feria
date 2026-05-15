@@ -195,8 +195,43 @@ export async function POST(request) {
             user_id = 'test_user';
           }
 
+          const featuredDays = parseInt(paymentData.metadata?.featured_days) || 7;
+          const featuredUntil = new Date();
+          featuredUntil.setDate(featuredUntil.getDate() + featuredDays);
+
+          // Para tiendas, actualizamos directamente el documento de usuario
+          if (item_type === 'store') {
+            try {
+              console.log('🔄 Updating store featuring for user:', user_id);
+              const userRef = adminDb.collection('users').doc(user_id);
+              await userRef.update({
+                featured: true,
+                featuredUntil: featuredUntil,
+                featuredPaymentId: paymentData.id,
+                featuredAmount: parseFloat(amount || paymentData.transaction_amount || 0),
+                fechaDestacado: FieldValue.serverTimestamp()
+              });
+              await adminDb.collection('featured_payments').add({
+                itemId: user_id,
+                itemType: 'store',
+                userId: user_id,
+                paymentId: paymentData.id,
+                amount: parseFloat(amount || paymentData.transaction_amount || 0),
+                status: paymentData.status,
+                featuredUntil: featuredUntil,
+                externalReference: paymentData.external_reference,
+                fechaCreacion: FieldValue.serverTimestamp(),
+                payerEmail: paymentData.payer?.email || ''
+              });
+              console.log('✅ Store featured until:', featuredUntil.toISOString());
+            } catch (firebaseError) {
+              console.error('❌ Error updating store featuring:', firebaseError);
+            }
+            return NextResponse.json({ received: true });
+          }
+
           let collectionName, itemLabel;
-          
+
           if (item_type === 'employment') {
             collectionName = 'empleos';
             itemLabel = 'empleo';
@@ -207,16 +242,12 @@ export async function POST(request) {
             collectionName = 'productos';
             itemLabel = 'producto';
           }
-          
-          const featuredDays = parseInt(paymentData.metadata?.featured_days) || 7;
-          const featuredUntil = new Date();
-          featuredUntil.setDate(featuredUntil.getDate() + featuredDays);
 
           try {
             console.log(`🔄 Updating ${itemLabel} in Firebase...`);
-            
+
             const itemRef = adminDb.collection(collectionName).doc(item_id);
-            
+
             await itemRef.update({
               featured: true,
               featuredUntil: featuredUntil,

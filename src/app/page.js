@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import FeaturedProducts from '@/components/home/FeaturedProducts'
 import FeaturedServices from '@/components/home/FeaturedServices'
 import FeaturedJobs from '@/components/home/FeaturedJobs'
+import FeaturedStores from '@/components/home/FeaturedStores'
 import RecentItems from '@/components/home/RecentItems'
 import CategoriesSection from '@/components/home/CategoriesSection'
 import Testimonials from '@/components/home/Testimonials'
@@ -47,6 +48,11 @@ export default function HomePage() {
       {/* Activa tu Tienda */}
       <section className="pb-2 lg:pb-4">
         <ActivateStoreButton />
+      </section>
+
+      {/* Tiendas Destacadas */}
+      <section className="pb-2 lg:pb-4">
+        <FeaturedStores />
       </section>
 
       {/* Productos Destacados */}

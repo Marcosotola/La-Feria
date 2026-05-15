@@ -3,7 +3,7 @@
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { CheckCircle, ArrowLeft, Star, Loader, Briefcase } from 'lucide-react';
+import { CheckCircle, ArrowLeft, Star, Loader, Briefcase, Store } from 'lucide-react';
 import Link from 'next/link';
 
 function PaymentSuccessContent() {
@@ -11,13 +11,20 @@ function PaymentSuccessContent() {
   const productId = searchParams.get('product_id');
   const serviceId = searchParams.get('service_id');
   const employmentId = searchParams.get('employment_id');
+  const storeId = searchParams.get('store_id');
   const status = searchParams.get('status');
   const paymentId = searchParams.get('payment_id');
 
   // Determinar tipo de item
   let itemType, itemId, dashboardPath, sectionLabel, icon;
-  
-  if (employmentId) {
+
+  if (storeId) {
+    itemType = 'tienda';
+    itemId = storeId;
+    dashboardPath = '/dashboard/tienda';
+    sectionLabel = 'Tiendas Destacadas';
+    icon = <Store className="w-5 h-5" />;
+  } else if (employmentId) {
     itemType = 'empleo';
     itemId = employmentId;
     dashboardPath = '/dashboard/tienda/empleos';

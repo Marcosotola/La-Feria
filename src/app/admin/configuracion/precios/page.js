@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getPricing, updatePricing, DEFAULT_PRICING } from '@/lib/services/pricingService';
-import { Save, Loader2, CheckCircle2, DollarSign, Briefcase, Wrench, ShoppingBag, Store } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, DollarSign, Briefcase, Wrench, ShoppingBag, Store, Star } from 'lucide-react';
 
 const SECTIONS = [
   {
@@ -10,6 +10,7 @@ const SECTIONS = [
     label: 'Portal de Empleos',
     icon: Briefcase,
     color: 'purple',
+    badge: 'Destaque en el home',
     fields: [
       { key: 'dias3', label: '3 días' },
       { key: 'dias5', label: '5 días' },
@@ -21,6 +22,7 @@ const SECTIONS = [
     label: 'Servicios',
     icon: Wrench,
     color: 'blue',
+    badge: 'Destaque en el home',
     fields: [
       { key: 'dias3', label: '3 días' },
       { key: 'dias5', label: '5 días' },
@@ -32,6 +34,19 @@ const SECTIONS = [
     label: 'Productos',
     icon: ShoppingBag,
     color: 'green',
+    badge: 'Destaque en el home',
+    fields: [
+      { key: 'dias3', label: '3 días' },
+      { key: 'dias5', label: '5 días' },
+      { key: 'dias7', label: '7 días' },
+    ],
+  },
+  {
+    key: 'tiendaDestacada',
+    label: 'Tienda Destacada',
+    icon: Star,
+    color: 'yellow',
+    badge: 'Destaque en el home',
     fields: [
       { key: 'dias3', label: '3 días' },
       { key: 'dias5', label: '5 días' },
@@ -43,6 +58,7 @@ const SECTIONS = [
     label: 'Suscripción Tienda',
     icon: Store,
     color: 'teal',
+    badge: 'Plan de suscripción',
     fields: [
       { key: 'mensual',     label: 'Mensual' },
       { key: 'trimestral', label: 'Trimestral' },
@@ -55,6 +71,7 @@ const COLOR_MAP = {
   purple: 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
   blue:   'bg-blue-100   dark:bg-blue-900/20   text-blue-600   dark:text-blue-400',
   green:  'bg-green-100  dark:bg-green-900/20  text-green-600  dark:text-green-400',
+  yellow: 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400',
   teal:   'bg-teal-100   dark:bg-teal-900/20   text-teal-600   dark:text-teal-400',
 };
 
@@ -142,16 +159,9 @@ export default function PreciosPage() {
                   <Icon className="w-5 h-5" />
                 </div>
                 <h2 className="font-bold text-gray-900 dark:text-white">{section.label}</h2>
-                {section.key !== 'tienda' && (
-                  <span className="ml-auto text-xs text-gray-400 dark:text-gray-500">
-                    Destaque en el home
-                  </span>
-                )}
-                {section.key === 'tienda' && (
-                  <span className="ml-auto text-xs text-gray-400 dark:text-gray-500">
-                    Plan de suscripción
-                  </span>
-                )}
+                <span className="ml-auto text-xs text-gray-400 dark:text-gray-500">
+                  {section.badge}
+                </span>
               </div>
 
               {/* Fields */}

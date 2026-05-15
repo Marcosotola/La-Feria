@@ -13,12 +13,14 @@ export async function POST(request) {
       productId,
       serviceId,
       employmentId,
+      storeId,
       userId,
       userName,
       productName,
       serviceName,
       employmentTitle,
       employmentName,
+      storeName,
       amount,
       featuredDays,
       payerEmail,
@@ -29,8 +31,12 @@ export async function POST(request) {
 
     // Determinar tipo de item
     let itemType, itemId, itemName;
-    
-    if (type === 'employment' || employmentId) {
+
+    if (type === 'store' || storeId) {
+      itemType = 'store';
+      itemId = storeId || userId;
+      itemName = storeName || 'Mi Tienda';
+    } else if (type === 'employment' || employmentId) {
       itemType = 'employment';
       itemId = employmentId;
       itemName = employmentTitle || employmentName || 'Empleo';
@@ -74,7 +80,9 @@ export async function POST(request) {
 
     // Configurar URLs de retorno según el tipo
     let dashboardPath;
-    if (itemType === 'employment') {
+    if (itemType === 'store') {
+      dashboardPath = '/dashboard/tienda';
+    } else if (itemType === 'employment') {
       dashboardPath = '/dashboard/tienda/empleos';
     } else if (itemType === 'service') {
       dashboardPath = '/dashboard/tienda/servicios';
@@ -84,7 +92,9 @@ export async function POST(request) {
 
     // Descripción según el tipo
     let description;
-    if (itemType === 'employment') {
+    if (itemType === 'store') {
+      description = `Destacar tienda por ${days} días en La Feria`;
+    } else if (itemType === 'employment') {
       description = `Destacar publicación de empleo por ${days} días en La Feria`;
     } else if (itemType === 'service') {
       description = `Destacar servicio por ${days} días en La Feria`;

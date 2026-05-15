@@ -17,6 +17,11 @@ export const DEFAULT_PRICING = {
     dias5: 800,
     dias7: 1200,
   },
+  tiendaDestacada: {
+    dias3: 800,
+    dias5: 1200,
+    dias7: 1800,
+  },
   tienda: {
     mensual: 2000,
     trimestral: 5500,
@@ -31,10 +36,11 @@ export async function getPricing() {
       // Merge con defaults para no romper si faltan campos nuevos
       const saved = snap.data();
       return {
-        empleos:   { ...DEFAULT_PRICING.empleos,   ...saved.empleos },
-        servicios: { ...DEFAULT_PRICING.servicios, ...saved.servicios },
-        productos: { ...DEFAULT_PRICING.productos, ...saved.productos },
-        tienda:    { ...DEFAULT_PRICING.tienda,    ...saved.tienda },
+        empleos:          { ...DEFAULT_PRICING.empleos,          ...saved.empleos },
+        servicios:        { ...DEFAULT_PRICING.servicios,        ...saved.servicios },
+        productos:        { ...DEFAULT_PRICING.productos,        ...saved.productos },
+        tiendaDestacada:  { ...DEFAULT_PRICING.tiendaDestacada,  ...saved.tiendaDestacada },
+        tienda:           { ...DEFAULT_PRICING.tienda,           ...saved.tienda },
       };
     }
     return DEFAULT_PRICING;
