@@ -2,6 +2,7 @@
 'use client';
 
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import '@/styles/store-themes.css'
 import { ThemeProvider } from '../components/providers/ThemeProvider'
@@ -105,6 +106,11 @@ export default function RootLayout({ children }) {
         <InstallPrompt />
         <NotificationPrompt />
         <TokenRefresher />
+        {/* reCAPTCHA Enterprise — requerido por Firebase App Check para phone auth */}
+        <Script
+          src="https://www.google.com/recaptcha/enterprise.js?render=6LeSM-AsAAAAAIY4YxApMXFW45hJacgQYoMxK0oa"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )
