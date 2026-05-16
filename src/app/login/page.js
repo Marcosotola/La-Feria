@@ -11,8 +11,11 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Solo redirigir si está autenticado Y no necesita completar perfil
-    if (!loading && isAuthenticated && !needsProfileCompletion && userData?.profileCompleted) {
+    if (loading) return;
+    if (!isAuthenticated) return;
+    if (needsProfileCompletion) {
+      router.push('/register');
+    } else if (userData?.profileCompleted) {
       router.push('/dashboard');
     }
   }, [isAuthenticated, needsProfileCompletion, userData, loading, router]);

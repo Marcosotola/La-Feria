@@ -17,7 +17,7 @@ service cloud.firestore {
 
     // ===== USUARIOS =====
     match /users/{userId} {
-      allow read: if isAuth();
+      allow read: if true; // Perfiles de tienda son públicos (marketplace)
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();

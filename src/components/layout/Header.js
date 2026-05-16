@@ -12,10 +12,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import ChatWithMily from '@/components/chat/ChatWithMily'
+import AuthGateModal from '@/components/auth/AuthGateModal'
 
 export default function Header() {
   const [mounted, setMounted] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showAuthGate, setShowAuthGate] = useState(false)
   const [installPrompt, setInstallPrompt] = useState(null)
   const [isInstalled, setIsInstalled] = useState(false)
   const { theme, setTheme } = useTheme()
@@ -59,7 +61,7 @@ export default function Header() {
   const handleUserAction = () => {
     if (loading) return
     if (isAuthenticated) setShowUserMenu(v => !v)
-    else router.push('/login')
+    else setShowAuthGate(true)
   }
 
   const handleLogout = async () => {
@@ -418,13 +420,16 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Overlay */}
+      {/* Overlay menú usuario */}
       {showUserMenu && (
         <div
           className="fixed inset-0 bg-black/10 dark:bg-black/30 z-40"
           onClick={() => setShowUserMenu(false)}
         />
       )}
+
+      {/* Modal de acceso */}
+      {showAuthGate && <AuthGateModal onClose={() => setShowAuthGate(false)} />}
     </>
   )
 }

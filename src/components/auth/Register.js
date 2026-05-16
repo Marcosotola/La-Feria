@@ -38,7 +38,10 @@ export default function Register({ onSwitchToLogin }) {
     verifyOtp,
     signInWithGoogle,
     registerWithEmail,
-    refreshUserData
+    refreshUserData,
+    user: authCtxUser,
+    userData: authCtxUserData,
+    needsProfileCompletion
   } = useAuth()
 
   const recaptchaVerifierRef = useRef(null)
@@ -103,14 +106,45 @@ export default function Register({ onSwitchToLogin }) {
     location: false
   })
 
+  // Si el usuario ya está autenticado (Google o teléfono) sin perfil completo,
+  // saltar directo al paso 3 (selección de rol) para no pedir datos de auth de nuevo
+  useEffect(() => {
+    if (!authCtxUser || step !== 1) return
+
+    // Google: tiene doc con isGoogleUser=true y profileCompleted=false
+    if (needsProfileCompletion && authCtxUserData?.isGoogleUser) {
+      setAuthUser(authCtxUser)
+      setProfileData(prev => ({
+        ...prev,
+        firstName: authCtxUserData.firstName || '',
+        lastName: authCtxUserData.lastName || '',
+        email: authCtxUserData.email || '',
+      }))
+      setStep(3)
+      return
+    }
+
+    // Teléfono: autenticado pero sin doc en Firestore (registro incompleto o viene del login)
+    if (needsProfileCompletion && !authCtxUserData && authCtxUser.phoneNumber) {
+      setAuthUser(authCtxUser)
+      setStep(3)
+    }
+  }, [authCtxUser, needsProfileCompletion, authCtxUserData, step])
+
   // === PASO 1: Enviar SMS ===
   const handleSendOtp = async (e) => {
     e.preventDefault()
+    const cleanNumber = phoneParts.number.trim()
+    if (cleanNumber.length < 10) {
+      setError('Número demasiado corto (ingresá Cód. Área + Número sin 0 ni 15)')
+      setShowToast(true)
+      return
+    }
     setLoading(true)
     setError(null)
     setShowToast(false)
     try {
-      const fullPhone = `+549${phoneParts.number}`
+      const fullPhone = `+549${cleanNumber}`
       const result = await signInWithPhone(fullPhone, recaptchaVerifierRef.current)
       setConfirmationResult(result)
       setStep(2)
@@ -195,6 +229,17 @@ export default function Register({ onSwitchToLogin }) {
     setStep(4)
   }
 
+  const generateStoreSlug = (businessName, displayName) => {
+    const name = businessName || displayName || 'tienda'
+    return name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9\s]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+  }
+
   // === PASO 4: Guardar Perfil ===
   const handleProfileSubmit = async (e) => {
     e.preventDefault()
@@ -218,6 +263,11 @@ export default function Register({ onSwitchToLogin }) {
         dniUrls.back = await getDownloadURL(backSnapshot.ref)
       }
 
+      const needsStore = selectedRole === 'puestero' || selectedRole === 'organizer'
+      const storeSlug = needsStore
+        ? generateStoreSlug(profileData.businessName, `${profileData.firstName} ${profileData.lastName}`)
+        : ''
+
       const finalData = {
         ...profileData,
         role: selectedRole,
@@ -226,7 +276,10 @@ export default function Register({ onSwitchToLogin }) {
         email: profileData.email || authUser.email || '',
         createdAt: new Date().toISOString(),
         profileCompleted: true,
-        dniPhotos: selectedRole === 'organizer' ? dniUrls : null
+        accountStatus: 'pending',
+        storeSlug,
+        storeUrl: storeSlug ? `/tienda/${storeSlug}` : '',
+        dniPhotos: selectedRole === 'organizer' ? dniUrls : null,
       }
 
       await setDoc(doc(db, 'users', authUser.uid), finalData)
@@ -244,6 +297,27 @@ export default function Register({ onSwitchToLogin }) {
     if (file) {
       setDniFiles(prev => ({ ...prev, [type]: file }))
       setDniPreviews(prev => ({ ...prev, [type]: URL.createObjectURL(file) }))
+    }
+  }
+
+  // === GOOGLE REGISTER ===
+  const handleGoogleSignIn = async () => {
+    setLoading(true)
+    setError(null)
+    setShowToast(false)
+    try {
+      const result = await signInWithGoogle()
+      if (result?.needsCompletion) {
+        setAuthUser(result.user)
+        setStep(3)
+      } else {
+        window.location.href = '/dashboard'
+      }
+    } catch (err) {
+      setError('Error al continuar con Google. Intentá de nuevo.')
+      setShowToast(true)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -279,9 +353,9 @@ export default function Register({ onSwitchToLogin }) {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50 dark:bg-black flex flex-col justify-center py-12 px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex flex-col justify-start pt-4 pb-8 px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white dark:bg-gray-900 py-10 px-8 shadow-2xl rounded-[3rem] border border-gray-100 dark:border-gray-800 transition-all">
+          <div className="bg-white dark:bg-gray-900 py-6 px-5 sm:py-10 sm:px-8 shadow-2xl rounded-[3rem] border border-gray-100 dark:border-gray-800 transition-all">
             
             {/* CABECERA DINÁMICA */}
             <div className="flex justify-between items-center mb-8">
@@ -312,19 +386,25 @@ export default function Register({ onSwitchToLogin }) {
                 <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-2xl">
                   <button
                     onClick={() => setRegMethod('phone')}
-                    className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${regMethod === 'phone' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-teal-600' : 'text-gray-400 hover:text-gray-600'}`}
+                    className={`flex-1 py-2.5 rounded-xl text-[10px] font-black transition-all ${regMethod === 'phone' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-teal-600' : 'text-gray-400 hover:text-gray-600'}`}
                   >
                     CELULAR
                   </button>
                   <button
                     onClick={() => setRegMethod('email')}
-                    className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${regMethod === 'email' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-teal-600' : 'text-gray-400 hover:text-gray-600'}`}
+                    className={`flex-1 py-2.5 rounded-xl text-[10px] font-black transition-all ${regMethod === 'email' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-teal-600' : 'text-gray-400 hover:text-gray-600'}`}
                   >
                     EMAIL
                   </button>
+                  <button
+                    onClick={() => setRegMethod('google')}
+                    className={`flex-1 py-2.5 rounded-xl text-[10px] font-black transition-all ${regMethod === 'google' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-teal-600' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    GOOGLE
+                  </button>
                 </div>
 
-                {regMethod === 'phone' ? (
+                {regMethod === 'phone' && (
                   <form onSubmit={handleSendOtp} className="space-y-4">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase text-gray-400 px-1 tracking-widest">Número de Celular</label>
@@ -336,10 +416,10 @@ export default function Register({ onSwitchToLogin }) {
                           placeholder="Cod. Área + Número (Ej: 11 1234 5678)"
                           value={phoneParts.number}
                           onChange={(e) => setPhoneParts({ ...phoneParts, number: e.target.value.replace(/\D/g, '') })}
-                          className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-black text-lg"
+                          className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-black text-lg"
                         />
                       </div>
-                      <div className="px-4 space-y-1">
+                      <div className="px-4 space-y-0.5">
                         <p className="text-[10px] font-black text-gray-900 dark:text-gray-100 uppercase tracking-tight text-center">
                           ⚠️ Ingresar <span className="text-primary-600">SIN el 0</span> y <span className="text-primary-600">SIN el 15</span>
                         </p>
@@ -348,18 +428,19 @@ export default function Register({ onSwitchToLogin }) {
                         </p>
                       </div>
                     </div>
-
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-5 bg-brand-teal-600 hover:bg-brand-teal-700 text-white font-black rounded-[2rem] shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-brand-teal-600 hover:bg-brand-teal-700 text-white font-black rounded-[2rem] shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-2"
                     >
                       {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Continuar <ArrowRight className="w-5 h-5" /></>}
                     </button>
                   </form>
-                ) : (
+                )}
+
+                {regMethod === 'email' && (
                   <form onSubmit={handleEmailRegister} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <div className="relative group">
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-brand-teal-500" />
                         <input
@@ -368,7 +449,7 @@ export default function Register({ onSwitchToLogin }) {
                           placeholder="Correo Electrónico"
                           value={emailData.email}
                           onChange={(e) => setEmailData({ ...emailData, email: e.target.value })}
-                          className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
+                          className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
                         />
                       </div>
                       <div className="relative group">
@@ -379,7 +460,7 @@ export default function Register({ onSwitchToLogin }) {
                           placeholder="Contraseña (mín. 6 caracteres)"
                           value={emailData.password}
                           onChange={(e) => setEmailData({ ...emailData, password: e.target.value })}
-                          className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
+                          className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
                         />
                       </div>
                       <div className="relative group">
@@ -390,37 +471,40 @@ export default function Register({ onSwitchToLogin }) {
                           placeholder="Confirmar Contraseña"
                           value={emailData.confirmPassword}
                           onChange={(e) => setEmailData({ ...emailData, confirmPassword: e.target.value })}
-                          className="w-full pl-12 pr-4 py-5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
+                          className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
                         />
                       </div>
                     </div>
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-5 bg-brand-teal-600 hover:bg-brand-teal-700 text-white font-black rounded-[2rem] shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-brand-teal-600 hover:bg-brand-teal-700 text-white font-black rounded-[2rem] shadow-xl shadow-brand-teal-600/30 transition-all flex items-center justify-center gap-2"
                     >
                       {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Crear Cuenta <ArrowRight className="w-5 h-5" /></>}
                     </button>
                   </form>
                 )}
 
-                <div className="relative py-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-100 dark:border-gray-800"></div>
+                {regMethod === 'google' && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <p className="text-sm text-gray-500 text-center font-medium">
+                      Registrate rápido con tu cuenta de Google.<br/>
+                      <span className="text-xs text-gray-400">Si ya tenés cuenta, te va a reconocer automáticamente.</span>
+                    </p>
+                    <button
+                      onClick={handleGoogleSignIn}
+                      disabled={loading}
+                      className="w-full py-4 border-2 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                        <>
+                          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="" />
+                          Continuar con Google
+                        </>
+                      )}
+                    </button>
                   </div>
-                  <div className="relative flex justify-center">
-                    <span className="px-4 bg-white dark:bg-gray-900 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-                      Otras opciones
-                    </span>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={signInWithGoogle}
-                  className="w-full py-4 border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
-                >
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" /> Google
-                </button>
+                )}
 
                 <button
                   onClick={() => {
@@ -550,7 +634,17 @@ export default function Register({ onSwitchToLogin }) {
                     onChange={(e) => setProfileData({...profileData, email: e.target.value})}
                     className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 font-bold"
                   />
-                  
+
+                  {(selectedRole === 'puestero' || selectedRole === 'organizer') && (
+                    <input
+                      required
+                      placeholder={selectedRole === 'organizer' ? 'Nombre de tu feria o emprendimiento' : 'Nombre de tu tienda / puesto'}
+                      value={profileData.businessName}
+                      onChange={(e) => setProfileData({...profileData, businessName: e.target.value})}
+                      className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 font-bold"
+                    />
+                  )}
+
                   {selectedRole === 'organizer' && (
                     <div className="pt-2 space-y-4 animate-in fade-in slide-in-from-top-2">
                       <label className="text-[10px] font-black uppercase text-gray-400 px-2">Identidad (Obligatorio para Organizadores)</label>

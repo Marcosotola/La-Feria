@@ -62,9 +62,10 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = userDoc.data();
-      
+
       // Verificar si necesita completar perfil (usuarios de Google)
       if (data.isGoogleUser && !data.profileCompleted) {
+        setUserData(data);
         setNeedsProfileCompletion(true);
         return data;
       }
@@ -133,13 +134,13 @@ export const AuthProvider = ({ children }) => {
   const loginWithEmail = async (email, password) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const userData = await loadUserData(userCredential.user);
-      
+
       if (!userCredential.user.emailVerified) {
         await firebaseSignOut(auth);
         throw new Error('Por favor verifica tu email antes de continuar');
       }
 
+      const userData = await loadUserData(userCredential.user);
       return { user: userCredential.user, userData };
     } catch (error) {
       throw error;

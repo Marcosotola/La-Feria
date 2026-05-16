@@ -4,6 +4,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, isSupported } from 'firebase/messaging';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -23,9 +24,24 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// Inicializar messaging solo en el cliente y si es compatible
+// Inicializar App Check y messaging solo en el cliente
 let messaging = null;
 if (typeof window !== 'undefined') {
+  if (process.env.NODE_ENV === 'development') {
+    // Desarrollo: bypass reCAPTCHA, usar números de prueba de Firebase Console
+    auth.settings.appVerificationDisabledForTesting = true;
+  } else {
+    // Producción: App Check con reCAPTCHA Enterprise para phone auth
+    try {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider('6LeSM-AsAAAAAIY4YxApMXFW45hJacgQYoMxK0oa'),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (_) {
+      // Ya inicializado (hot reload)
+    }
+  }
+
   isSupported().then(supported => {
     if (supported) {
       messaging = getMessaging(app);

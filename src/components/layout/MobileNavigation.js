@@ -20,6 +20,7 @@ import {
 } from '@/constants/categoryUI'
 import Link from 'next/link'
 import Image from 'next/image'
+import AuthGateModal from '@/components/auth/AuthGateModal'
 
 export default function MobileNavigation() {
   // TODOS LOS HOOKS PRIMERO - SIEMPRE EN EL MISMO ORDEN
@@ -29,6 +30,7 @@ export default function MobileNavigation() {
   const [activeTab, setActiveTab] = useState('home')
   const [showCategoriesModal, setShowCategoriesModal] = useState(false)
   const [showUserModal, setShowUserModal] = useState(false)
+  const [showAuthGate, setShowAuthGate] = useState(false)
   const [selectedMainCategory, setSelectedMainCategory] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [showSubcategories, setShowSubcategories] = useState(false)
@@ -139,6 +141,11 @@ export default function MobileNavigation() {
 
     if (itemId === 'user' && isAuthenticated) {
       setShowUserModal(true)
+      return
+    }
+
+    if (itemId === 'user' && !isAuthenticated) {
+      setShowAuthGate(true)
       return
     }
 
@@ -676,6 +683,9 @@ export default function MobileNavigation() {
 
       {/* Spacer para compensar la navegación fija */}
       <div className="lg:hidden h-20" />
+
+      {/* Modal de acceso para usuarios no autenticados */}
+      {showAuthGate && <AuthGateModal onClose={() => setShowAuthGate(false)} />}
     </>
   )
 }

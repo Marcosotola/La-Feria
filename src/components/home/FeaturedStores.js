@@ -85,9 +85,7 @@ export default function FeaturedStores() {
     }
   };
 
-  // No renderizar si no hay destacadas y el usuario no puede destacar
   const canFeature = user && userData?.accountStatus === 'approved';
-  if (!loading && stores.length === 0 && !canFeature) return null;
 
   return (
     <section className="px-4 sm:px-6 lg:px-8 py-2">
