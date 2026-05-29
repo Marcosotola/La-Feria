@@ -81,25 +81,40 @@ export async function POST(request) {
         }
 
         // Manejar diferentes acciones de suscripción
+        // IMPORTANTE: solo activar cuando MercadoPago confirma pago real (authorized)
         switch (action) {
           case 'created':
+            // Suscripción creada pero sin pago aún — no activar
+            console.log('📝 Subscription created (pending payment), no action taken');
+            break;
+
+          case 'updated':
+            // Puede ser un cambio de estado — solo activar si ya está autorizada
+            if (subscriptionData.status === 'authorized') {
+              console.log('✅ Subscription updated and authorized, activating for user:', userId);
+              await handleSubscriptionActivation(userId, subscriptionData);
+            } else {
+              console.log('📝 Subscription updated, status:', subscriptionData.status, '- no activation');
+            }
+            break;
+
           case 'approved':
           case 'authorized':
-          case 'updated': // ⭐ AGREGAR ESTE CASO
-            console.log('✅ Subscription activated/updated for user:', userId);
+            // Pago confirmado por MercadoPago
+            console.log('✅ Subscription authorized, activating for user:', userId);
             await handleSubscriptionActivation(userId, subscriptionData);
             break;
-            
+
           case 'paused':
             console.log('⏸️ Subscription paused for user:', userId);
             await handleSubscriptionPause(userId, subscriptionData);
             break;
-            
+
           case 'cancelled':
             console.log('❌ Subscription cancelled for user:', userId);
             await handleSubscriptionCancellation(userId, subscriptionData);
             break;
-            
+
           default:
             console.log('ℹ️ Subscription action not handled:', action);
         }
@@ -382,7 +397,7 @@ async function updateUserSubscription(userRef, subscriptionData, userId) {
 
 async function handleSubscriptionPause(userId, subscriptionData) {
   try {
-    const userRef = adminDb.collection('usuarios').doc(userId);
+    const userRef = adminDb.collection('users').doc(userId);
     const subscriptionRef = adminDb.collection('subscriptions').doc(userId);
 
     await userRef.update({
@@ -405,7 +420,7 @@ async function handleSubscriptionPause(userId, subscriptionData) {
 
 async function handleSubscriptionCancellation(userId, subscriptionData) {
   try {
-    const userRef = adminDb.collection('usuarios').doc(userId);
+    const userRef = adminDb.collection('users').doc(userId);
     const subscriptionRef = adminDb.collection('subscriptions').doc(userId);
 
     await userRef.update({
