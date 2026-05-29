@@ -270,18 +270,6 @@ export default function DashboardTopNavigation() {
               <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showMobileMenu ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Ver Tienda */}
-            {storeUrl && (
-              <a
-                href={`/tienda/${storeUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-3 flex items-center gap-1.5 px-3 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-              >
-                <Store className="w-4 h-4" />
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            )}
           </div>
 
           {/* Mobile dropdown */}
