@@ -7,7 +7,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, ArrowLeft, Store, Loader, Sparkles, Calendar, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 
 function SubscriptionSuccessContent() {
@@ -55,44 +55,33 @@ function SubscriptionSuccessContent() {
       }
 
       try {
-        // Esperar para que el webhook procese y verificar varias veces
+        // Esperar a que el webhook procese y verificar varias veces
+        // El webhook es la única fuente válida de activación — nunca activar desde el cliente
         let attempts = 0;
-        const maxAttempts = 5;
-        
+        const maxAttempts = 8;
+
         while (attempts < maxAttempts) {
           await new Promise(resolve => setTimeout(resolve, 2000));
-          
+
           const userRef = doc(db, 'users', userId);
           const userSnap = await getDoc(userRef);
 
           if (userSnap.exists()) {
             const userData = userSnap.data();
             if (userData.accountStatus === 'approved' && userData.subscription?.isActive) {
-              console.log('✅ Subscription activated!');
+              console.log('✅ Subscription confirmed by webhook');
               setSubscriptionActive(true);
               break;
             }
           }
-          
+
           attempts++;
           console.log(`⏳ Attempt ${attempts}/${maxAttempts} - waiting for webhook...`);
         }
-        
-        if (attempts >= maxAttempts) {
-          console.log('⚠️ Max attempts reached. Attempting manual activation...');
-          await activateSubscriptionManually(userId);
-          
-          // Verificar nuevamente
-          const userRef = doc(db, 'users', userId);
-          const updatedUserSnap = await getDoc(userRef);
-          if (updatedUserSnap.exists()) {
-            const updatedUserData = updatedUserSnap.data();
-            if (updatedUserData.accountStatus === 'approved') {
-              setSubscriptionActive(true);
-            }
-          }
-        }
-        
+
+        // Si el webhook no confirmó en el tiempo de espera, mostramos estado pendiente
+        // La tienda NO se activa — el webhook lo hará cuando MercadoPago confirme el pago
+
       } catch (error) {
         console.error('Error checking subscription:', error);
       } finally {
@@ -102,37 +91,6 @@ function SubscriptionSuccessContent() {
 
     checkSubscription();
   }, [userId, userIdFromQuery, externalReference, searchParams]);
-
-  // Función para activar suscripción manualmente
-  const activateSubscriptionManually = async (uid) => {
-    try {
-      const userRef = doc(db, 'users', uid);
-      const nextBillingDate = new Date();
-      nextBillingDate.setDate(nextBillingDate.getDate() + 30);
-
-      await updateDoc(userRef, {
-        accountStatus: 'approved',
-        subscription: {
-          isActive: true,
-          planType: 'tienda_online',
-          startDate: new Date(),
-          expiresAt: nextBillingDate,
-          amount: 2500,
-          currency: 'ARS',
-          autoRenewal: true,
-          activatedAt: new Date(),
-          activationMethod: 'manual_success_page'
-        },
-        updatedAt: new Date()
-      });
-
-      console.log('✅ Subscription activated manually for user:', uid);
-      return true;
-    } catch (error) {
-      console.error('❌ Error activating subscription manually:', error);
-      return false;
-    }
-  };
 
   if (loading) {
     return (
@@ -154,13 +112,15 @@ function SubscriptionSuccessContent() {
     <div className="max-w-2xl w-full">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
         {/* Header con gradiente */}
-        <div className="bg-gradient-to-r from-orange-500 to-pink-500 p-8 text-white text-center">
+        <div className="bg-brand-teal-700 p-8 text-white text-center">
           <CheckCircle className="w-20 h-20 mx-auto mb-4" />
           <h1 className="text-3xl font-bold mb-2">
-            ¡Suscripción Activada!
+            {subscriptionActive ? '¡Suscripción Activada!' : 'Pago en proceso'}
           </h1>
-          <p className="text-orange-100">
-            Tu tienda online está lista para recibir clientes
+          <p className="text-white/80">
+            {subscriptionActive
+              ? 'Tu tienda online está lista para recibir clientes'
+              : 'Esperando confirmación de MercadoPago...'}
           </p>
         </div>
 
@@ -177,9 +137,9 @@ function SubscriptionSuccessContent() {
                   Tienda Online Activa
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                  {subscriptionActive 
-                    ? 'Tu cuenta ha sido aprobada automáticamente y tu tienda ya está disponible.'
-                    : 'Tu suscripción está siendo procesada. En unos momentos tu tienda estará activa.'}
+                  {subscriptionActive
+                    ? 'El pago fue confirmado y tu tienda ya está disponible al público.'
+                    : 'El pago está siendo procesado por MercadoPago. Tu tienda se activará automáticamente en los próximos minutos una vez confirmado. Si ya pagaste y no se activa, contactanos.'}
                 </p>
                 
                 <div className="grid grid-cols-2 gap-4 mt-4">
