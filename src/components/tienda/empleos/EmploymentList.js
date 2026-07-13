@@ -38,6 +38,7 @@ export default function EmploymentList({
   const [sortBy, setSortBy] = useState('fechaCreacion');
   const [sortOrder, setSortOrder] = useState('desc');
   const [viewMode, setViewMode] = useState('table');
+  const [showMobileCreateMenu, setShowMobileCreateMenu] = useState(false);
 
   // Filtrar y ordenar publicaciones
   const filteredPublicaciones = publicaciones
@@ -160,27 +161,42 @@ export default function EmploymentList({
         {/* Botones crear en móvil */}
         <div className="flex justify-between items-start mb-4 sm:hidden">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Empleos</h3>
-          <div className="relative group">
-            <button className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium">
+          <div className="relative">
+            <button
+              onClick={() => setShowMobileCreateMenu(prev => !prev)}
+              className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Nuevo
             </button>
-            <div className="hidden group-hover:block absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10">
-              <button
-                onClick={() => onCreateNew(TIPOS_PUBLICACION.OFERTA_EMPLEO)}
-                className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
-              >
-                <Briefcase className="w-4 h-4 text-blue-600" />
-                <span>Oferta de Empleo</span>
-              </button>
-              <button
-                onClick={() => onCreateNew(TIPOS_PUBLICACION.BUSQUEDA_EMPLEO)}
-                className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
-              >
-                <UserIcon className="w-4 h-4 text-green-600" />
-                <span>Busco Empleo</span>
-              </button>
-            </div>
+            {showMobileCreateMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowMobileCreateMenu(false)} />
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20">
+                  <button
+                    onClick={() => { onCreateNew(TIPOS_PUBLICACION.OFERTA_EMPLEO); setShowMobileCreateMenu(false); }}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
+                  >
+                    <Briefcase className="w-4 h-4 text-blue-600" />
+                    <span>Oferta de Empleo</span>
+                  </button>
+                  <button
+                    onClick={() => { onCreateNew(TIPOS_PUBLICACION.BUSQUEDA_EMPLEO); setShowMobileCreateMenu(false); }}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
+                  >
+                    <UserIcon className="w-4 h-4 text-green-600" />
+                    <span>Busco Empleo</span>
+                  </button>
+                  <button
+                    onClick={() => { onCreateNew(TIPOS_PUBLICACION.SERVICIO_PROFESIONAL); setShowMobileCreateMenu(false); }}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
+                  >
+                    <Wrench className="w-4 h-4 text-purple-600" />
+                    <span>Servicio Profesional</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -209,6 +225,7 @@ export default function EmploymentList({
               <option value="all">Todos los tipos</option>
               <option value={TIPOS_PUBLICACION.OFERTA_EMPLEO}>Ofertas de Empleo</option>
               <option value={TIPOS_PUBLICACION.BUSQUEDA_EMPLEO}>Búsquedas de Empleo</option>
+              <option value={TIPOS_PUBLICACION.SERVICIO_PROFESIONAL}>Servicios Profesionales</option>
             </select>
 
             <select
@@ -270,6 +287,13 @@ export default function EmploymentList({
                 <UserIcon className="w-4 h-4 mr-2" />
                 Busco Empleo
               </button>
+              <button
+                onClick={() => onCreateNew(TIPOS_PUBLICACION.SERVICIO_PROFESIONAL)}
+                className="inline-flex items-center px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+              >
+                <Wrench className="w-4 h-4 mr-2" />
+                Servicio Profesional
+              </button>
             </div>
           </div>
         </div>
@@ -302,6 +326,13 @@ export default function EmploymentList({
             >
               <UserIcon className="w-4 h-4 mr-2" />
               Busco Empleo
+            </button>
+            <button
+              onClick={() => onCreateNew(TIPOS_PUBLICACION.SERVICIO_PROFESIONAL)}
+              className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+            >
+              <Wrench className="w-4 h-4 mr-2" />
+              Servicio Profesional
             </button>
           </div>
         </div>

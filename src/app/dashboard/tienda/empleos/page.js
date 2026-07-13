@@ -1,7 +1,12 @@
 'use client';
 
-import EmploymentManager from '@/components/tienda/empleos/EmploymentManager';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function EmpleosPage() {
-  return <EmploymentManager />;
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/dashboard/empleos');
+  }, [router]);
+  return null;
 }

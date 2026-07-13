@@ -20,9 +20,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { TIPOS_PUBLICACION } from '@/types/employment';
 import OfertaEmpleoForm from './OfertaEmpleoForm';
 import BusquedaEmpleoForm from './BusquedaEmpleoForm';
+import ServicioProfesionalForm from './ServicioProfesionalForm';
 import EmploymentList from './EmploymentList';
 import OfertaEmpleoCard from './OfertaEmpleoCard';
 import BusquedaEmpleoCard from './BusquedaEmpleoCard';
+import ServicioProfesionalCard from './ServicioProfesionalCard';
 import FeaturedEmploymentButton from './FeaturedEmploymentButton';
 import { ArrowLeft, Briefcase, X } from 'lucide-react';
 import { deleteImage } from '@/lib/actions/cloudinary';
@@ -328,6 +330,16 @@ export default function EmploymentManager({ storeId, storeData }) {
               isLoading={isSaving}
             />
           )}
+
+          {tipoPublicacion === TIPOS_PUBLICACION.SERVICIO_PROFESIONAL && (
+            <ServicioProfesionalForm
+              servicio={selectedPublicacion}
+              storeId={storeId}
+              onSave={handleSavePublicacion}
+              onCancel={handleBackToList}
+              isLoading={isSaving}
+            />
+          )}
         </div>
       )}
 
@@ -384,6 +396,15 @@ export default function EmploymentManager({ storeId, storeData }) {
               {selectedPublicacion.tipoPublicacion === TIPOS_PUBLICACION.BUSQUEDA_EMPLEO && (
                 <BusquedaEmpleoCard
                   busqueda={selectedPublicacion}
+                  variant="grid"
+                  showContactInfo={false}
+                />
+              )}
+
+              {selectedPublicacion.tipoPublicacion === TIPOS_PUBLICACION.SERVICIO_PROFESIONAL && (
+                <ServicioProfesionalCard
+                  servicio={selectedPublicacion}
+                  storeData={storeData}
                   variant="grid"
                   showContactInfo={false}
                 />
