@@ -575,7 +575,7 @@ export default function DesktopNavigation() {
                 className="flex items-center gap-2 px-6 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
               >
                 <Store className="w-4 h-4" />
-                <span className="text-sm">¿Eres nuevo? Crea tu tienda aquí</span>
+                <span className="text-sm">¿Eres nuevo? Regístrate aquí</span>
               </button>
             )}
           </div>

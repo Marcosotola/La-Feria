@@ -19,7 +19,9 @@ import {
   Building2,
   AlertCircle,
   Upload,
-  Camera
+  Camera,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 import { 
   RecaptchaVerifier,
@@ -90,6 +92,7 @@ export default function Register({ onSwitchToLogin }) {
     firstName: '',
     lastName: '',
     email: '',
+    phoneNumber: '', // Para usuarios de Google (Auth no provee teléfono)
     businessName: '', // Para puesteros
   })
 
@@ -99,6 +102,8 @@ export default function Register({ onSwitchToLogin }) {
 
   const [regMethod, setRegMethod] = useState('phone') // 'phone' | 'email'
   const [emailData, setEmailData] = useState({ email: '', password: '', confirmPassword: '' })
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [showToast, setShowToast] = useState(false)
 
   const [permissions, setPermissions] = useState({
@@ -247,6 +252,10 @@ export default function Register({ onSwitchToLogin }) {
     setError(null)
 
     try {
+      if (!authUser.phoneNumber && profileData.phoneNumber.trim().length < 10) {
+        throw new Error('Número de celular inválido (ingresá Cód. Área + Número sin 0 ni 15)')
+      }
+
       let dniUrls = { front: '', back: '' }
 
       if (selectedRole === 'organizer') {
@@ -272,7 +281,7 @@ export default function Register({ onSwitchToLogin }) {
         ...profileData,
         role: selectedRole,
         uid: authUser.uid,
-        phoneNumber: authUser.phoneNumber || '',
+        phoneNumber: authUser.phoneNumber || `+549${profileData.phoneNumber.trim()}`,
         email: profileData.email || authUser.email || '',
         createdAt: new Date().toISOString(),
         profileCompleted: true,
@@ -328,7 +337,6 @@ export default function Register({ onSwitchToLogin }) {
       const updateData = {
         permissions,
         updatedAt: new Date(),
-        accountStatus: 'active'
       }
 
       await setDoc(doc(db, 'users', authUser.uid), updateData, { merge: true })
@@ -455,24 +463,40 @@ export default function Register({ onSwitchToLogin }) {
                       <div className="relative group">
                         <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-brand-teal-500" />
                         <input
-                          type="password"
+                          type={showPassword ? 'text' : 'password'}
                           required
                           placeholder="Contraseña (mín. 6 caracteres)"
                           value={emailData.password}
                           onChange={(e) => setEmailData({ ...emailData, password: e.target.value })}
-                          className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
+                          className="w-full pl-12 pr-12 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                          tabIndex={-1}
+                        >
+                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
                       </div>
                       <div className="relative group">
                         <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-brand-teal-500" />
                         <input
-                          type="password"
+                          type={showConfirmPassword ? 'text' : 'password'}
                           required
                           placeholder="Confirmar Contraseña"
                           value={emailData.confirmPassword}
                           onChange={(e) => setEmailData({ ...emailData, confirmPassword: e.target.value })}
-                          className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
+                          className="w-full pl-12 pr-12 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                          tabIndex={-1}
+                        >
+                          {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
                       </div>
                     </div>
                     <button
@@ -512,9 +536,10 @@ export default function Register({ onSwitchToLogin }) {
                     setShowToast(false)
                     onSwitchToLogin()
                   }}
-                  className="mt-6 w-full py-4 border-2 border-gray-100 dark:border-gray-800 rounded-2xl text-sm font-black text-gray-600 dark:text-gray-400 hover:border-brand-teal-500 hover:text-brand-teal-600 transition-all uppercase tracking-widest flex items-center justify-center gap-2 group"
+                  className="mt-6 w-full py-4 bg-white dark:bg-gray-900 hover:bg-brand-teal-50 dark:hover:bg-gray-800 border-2 border-brand-teal-600 rounded-[2rem] shadow-lg transition-all flex items-center justify-center gap-2 group"
                 >
-                  ¿Ya tienes cuenta? <span className="text-brand-teal-600 group-hover:scale-105 transition-transform">Inicia sesión</span>
+                  <span className="text-sm font-bold text-gray-500 dark:text-gray-400 normal-case">¿Ya tienes cuenta?</span>
+                  <span className="text-sm font-black text-brand-teal-600 uppercase tracking-widest group-hover:scale-105 transition-transform">Inicia sesión</span>
                 </button>
               </div>
             )}
@@ -610,6 +635,7 @@ export default function Register({ onSwitchToLogin }) {
                   <p className="text-sm text-gray-500">Casi terminamos, necesitamos conocerte mejor.</p>
                 </div>
                 <form onSubmit={handleProfileSubmit} className="space-y-4">
+                  <label className="text-[10px] font-black uppercase text-gray-400 px-2">Tus datos personales</label>
                   <div className="grid grid-cols-2 gap-4">
                     <input
                       required
@@ -635,14 +661,33 @@ export default function Register({ onSwitchToLogin }) {
                     className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 font-bold"
                   />
 
-                  {(selectedRole === 'puestero' || selectedRole === 'organizer') && (
+                  {!authUser?.phoneNumber && (
                     <input
                       required
-                      placeholder={selectedRole === 'organizer' ? 'Nombre de tu feria o emprendimiento' : 'Nombre de tu tienda / puesto'}
-                      value={profileData.businessName}
-                      onChange={(e) => setProfileData({...profileData, businessName: e.target.value})}
+                      type="tel"
+                      placeholder="Cod. Área + Número (Ej: 11 1234 5678)"
+                      value={profileData.phoneNumber}
+                      onChange={(e) => setProfileData({...profileData, phoneNumber: e.target.value.replace(/\D/g, '')})}
                       className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 font-bold"
                     />
+                  )}
+
+                  {(selectedRole === 'puestero' || selectedRole === 'organizer') && (
+                    <div className="pt-2 space-y-4">
+                      <label className="text-[10px] font-black uppercase text-gray-400 px-2">
+                        {selectedRole === 'organizer' ? 'Datos de tu feria/emprendimiento' : 'Datos de tu tienda'}
+                      </label>
+                      <p className="text-xs text-gray-400 px-2 -mt-3">
+                        Esto es lo que van a ver tus clientes — puede ser distinto a tus datos personales.
+                      </p>
+                      <input
+                        required
+                        placeholder={selectedRole === 'organizer' ? 'Nombre de tu feria o emprendimiento' : 'Nombre de tu tienda / puesto'}
+                        value={profileData.businessName}
+                        onChange={(e) => setProfileData({...profileData, businessName: e.target.value})}
+                        className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-brand-teal-500 font-bold"
+                      />
+                    </div>
                   )}
 
                   {selectedRole === 'organizer' && (

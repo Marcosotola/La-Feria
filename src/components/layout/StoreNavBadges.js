@@ -2,16 +2,16 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { getStoreConfig, defaultStoreConfig } from '@/lib/storeConfigUtils';
 import {
   Settings,
   Image as ImageIcon,
   Palette,
   Package,
   Wrench,
-  Briefcase,
   ImageIcon as GalleryIcon,
   Heart,
-  MapPin,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -20,11 +20,10 @@ const NAV_ITEMS = [
   { id: 'info',          name: 'Información', icon: Settings,     color: 'blue',   href: '/dashboard/tienda',               exact: true  },
   { id: 'logo',          name: 'Logo',         icon: ImageIcon,    color: 'purple', href: '/dashboard/tienda/logo'                        },
   { id: 'apariencia',    name: 'Apariencia',   icon: Palette,      color: 'green',  href: '/dashboard/tienda/configuracion'               },
-  { id: 'nosotros',      name: 'Nosotros',     icon: Heart,        color: 'pink',   href: '/dashboard/tienda/nosotros'                    },
-  { id: 'productos',     name: 'Productos',    icon: Package,      color: 'blue',   href: '/dashboard/tienda/productos'                   },
-  { id: 'servicios',     name: 'Servicios',    icon: Wrench,       color: 'green',  href: '/dashboard/tienda/servicios'                   },
-  { id: 'empleos',       name: 'Empleos',      icon: Briefcase,    color: 'purple', href: '/dashboard/tienda/empleos'                     },
-  { id: 'galeria',       name: 'Galería',      icon: GalleryIcon,  color: 'orange', href: '/dashboard/tienda/galeria'                     },
+  { id: 'nosotros',      name: 'Nosotros',     icon: Heart,        color: 'pink',   href: '/dashboard/tienda/nosotros',       configKey: 'showAbout'       },
+  { id: 'productos',     name: 'Productos',    icon: Package,      color: 'blue',   href: '/dashboard/tienda/productos',     configKey: 'showProducts'    },
+  { id: 'servicios',     name: 'Servicios',    icon: Wrench,       color: 'green',  href: '/dashboard/tienda/servicios',     configKey: 'showServices'    },
+  { id: 'galeria',       name: 'Galería',      icon: GalleryIcon,  color: 'orange', href: '/dashboard/tienda/galeria',       configKey: 'showGallery'     },
 ];
 
 const COLOR_MAP = {
@@ -38,12 +37,32 @@ const COLOR_MAP = {
 export default function StoreNavBadges() {
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [storeConfig, setStoreConfig] = useState(defaultStoreConfig);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    const refetch = () => getStoreConfig(user.uid).then(setStoreConfig);
+    refetch();
+    window.addEventListener('storeConfigUpdated', refetch);
+    return () => window.removeEventListener('storeConfigUpdated', refetch);
+  }, [user?.uid, pathname]);
 
   const isActive = (item) =>
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
+
+  const visibleItems = NAV_ITEMS.filter(item => !item.configKey || storeConfig[item.configKey]);
+
+  // Si el usuario está parado en una sección que acaba de ocultar en Apariencia, lo mandamos a Información
+  useEffect(() => {
+    const current = NAV_ITEMS.find(item => isActive(item));
+    if (current?.configKey && !storeConfig[current.configKey]) {
+      router.replace('/dashboard/tienda');
+    }
+  }, [storeConfig, pathname]);
 
   const getColors = (item) => {
     const map = COLOR_MAP[item.color] || COLOR_MAP.blue;
@@ -92,7 +111,7 @@ export default function StoreNavBadges() {
             className="flex overflow-x-auto scrollbar-hide py-3 gap-2 px-6"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {NAV_ITEMS.map(item => {
+            {visibleItems.map(item => {
               const Icon = item.icon;
               const active = isActive(item);
               return (
@@ -112,7 +131,7 @@ export default function StoreNavBadges() {
 
         {/* Desktop: flex centrado */}
         <div className="hidden lg:flex justify-center py-3 gap-2 overflow-x-auto scrollbar-hide">
-          {NAV_ITEMS.map(item => {
+          {visibleItems.map(item => {
             const Icon = item.icon;
             const active = isActive(item);
             return (
