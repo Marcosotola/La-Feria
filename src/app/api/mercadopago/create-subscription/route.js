@@ -1,10 +1,26 @@
 // src/app/api/mercadopago/create-subscription/route.js
 import { MercadoPagoConfig, PreApproval } from 'mercadopago';
 import { NextResponse } from 'next/server';
+import { adminDb } from '@/lib/firebase/admin';
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN,
 });
+
+const DEFAULT_TIENDA_MENSUAL = 2000;
+
+async function getTiendaMensualPrice() {
+  try {
+    const snap = await adminDb.collection('config').doc('pricing').get();
+    if (snap.exists) {
+      const mensual = snap.data()?.tienda?.mensual;
+      if (typeof mensual === 'number' && mensual > 0) return mensual;
+    }
+  } catch (e) {
+    console.error('Error leyendo pricing config:', e);
+  }
+  return DEFAULT_TIENDA_MENSUAL;
+}
 
 export async function POST(request) {
   try {
@@ -45,13 +61,16 @@ export async function POST(request) {
     // Calcular fechas
     const startDate = new Date();
     startDate.setHours(0, 0, 0, 0); // Inicio del día actual
-    
+
+    const mensualPrice = await getTiendaMensualPrice();
+    console.log('💲 Precio mensual desde config:', mensualPrice);
+
     const subscriptionData = {
       reason: 'Suscripción Tienda Online - La Feria',
       auto_recurring: {
         frequency: 1,
         frequency_type: 'months',
-        transaction_amount: 2000,
+        transaction_amount: mensualPrice,
         currency_id: 'ARS'
       },
       back_url: `${baseUrl}/payment/subscription/success`,

@@ -5,6 +5,7 @@ import { Store, Loader, Check, AlertCircle, Sparkles, X, CreditCard, MapPin, Sho
 import { useAuth } from '@/contexts/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { getPricing } from '@/lib/services/pricingService';
 
 export default function ActivateStoreButton({ className = '' }) {
   const { user } = useAuth();
@@ -13,6 +14,11 @@ export default function ActivateStoreButton({ className = '' }) {
   const [showModal, setShowModal] = useState(false);
   const [shouldShow, setShouldShow] = useState(false);
   const [checkingUser, setCheckingUser] = useState(true);
+  const [mensualPrice, setMensualPrice] = useState(2000);
+
+  useEffect(() => {
+    getPricing().then(p => setMensualPrice(p.tienda.mensual));
+  }, []);
 
   useEffect(() => {
     const checkUserStatus = async () => {
@@ -123,7 +129,7 @@ export default function ActivateStoreButton({ className = '' }) {
               {/* Precio */}
               <div className="bg-gradient-to-r from-orange-50 to-pink-50 dark:from-orange-900/20 dark:to-pink-900/20 border border-orange-200 dark:border-orange-700 rounded-xl p-5 mb-6 text-center">
                 <div className="flex items-baseline justify-center mb-1">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-white">$2.000</span>
+                  <span className="text-4xl font-bold text-gray-900 dark:text-white">${mensualPrice.toLocaleString('es-AR')}</span>
                   <span className="text-gray-500 dark:text-gray-400 ml-2">ARS / mes</span>
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Renovación automática · Cancelá cuando quieras</p>
@@ -175,7 +181,7 @@ export default function ActivateStoreButton({ className = '' }) {
                   {loading ? (
                     <><Loader className="w-5 h-5 animate-spin" /><span>Procesando...</span></>
                   ) : (
-                    <><CreditCard className="w-5 h-5" /><span>Suscribirme por $2.000/mes</span></>
+                    <><CreditCard className="w-5 h-5" /><span>Suscribirme por ${mensualPrice.toLocaleString('es-AR')}/mes</span></>
                   )}
                 </button>
                 <button

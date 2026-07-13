@@ -10,6 +10,7 @@ import {
 import { collection, getDocs, doc, updateDoc, deleteDoc, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useAuth } from '@/contexts/AuthContext';
+import { getPricing } from '@/lib/services/pricingService';
 
 const UserManagementSection = () => {
   const { userData } = useAuth();
@@ -130,13 +131,14 @@ const UserManagementSection = () => {
       if (newStatus === 'approved') {
         const nextBillingDate = new Date();
         nextBillingDate.setDate(nextBillingDate.getDate() + 30);
-        
+        const pricing = await getPricing();
+
         updateData.subscription = {
           isActive: true,
           planType: 'tienda_online',
           startDate: new Date(),
           expiresAt: nextBillingDate,
-          amount: 2500,
+          amount: pricing.tienda.mensual,
           currency: 'ARS',
           autoRenewal: false,
           activationMethod: 'manual_admin',

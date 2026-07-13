@@ -354,8 +354,21 @@ async function updateUserSubscription(userRef, subscriptionData, userId) {
   const nextBillingDate = new Date();
   nextBillingDate.setDate(nextBillingDate.getDate() + 30);
 
+  // El monto real cobrado viene de la suscripción en MercadoPago; si no está disponible
+  // (caso del webhook de pago autorizado, que solo trae id/status), se usa el precio de config
+  let amount = subscriptionData.auto_recurring?.transaction_amount;
+  if (!amount) {
+    try {
+      const pricingSnap = await adminDb.collection('config').doc('pricing').get();
+      amount = pricingSnap.exists ? pricingSnap.data()?.tienda?.mensual : null;
+    } catch (e) {
+      console.error('Error leyendo pricing config:', e);
+    }
+  }
+  amount = amount || 2000;
+
   console.log('💾 Updating user document...');
-  
+
   // Actualizar usuario a "approved"
   await userRef.update({
     accountStatus: 'approved',
@@ -365,7 +378,7 @@ async function updateUserSubscription(userRef, subscriptionData, userId) {
       startDate: FieldValue.serverTimestamp(),
       expiresAt: nextBillingDate,
       mercadopagoSubscriptionId: subscriptionData.id,
-      amount: 2000,
+      amount,
       currency: 'ARS',
       autoRenewal: true
     },
@@ -381,7 +394,7 @@ async function updateUserSubscription(userRef, subscriptionData, userId) {
     status: 'active',
     mercadopagoSubscriptionId: subscriptionData.id,
     planType: 'tienda_online',
-    amount: 2000,
+    amount,
     currency: 'ARS',
     startDate: FieldValue.serverTimestamp(),
     nextBillingDate: nextBillingDate,

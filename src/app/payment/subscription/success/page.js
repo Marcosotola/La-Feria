@@ -16,6 +16,7 @@ function SubscriptionSuccessContent() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [subscriptionActive, setSubscriptionActive] = useState(false);
+  const [subscriptionAmount, setSubscriptionAmount] = useState(null);
   
   // Intentar obtener userId de varias fuentes
   const userIdFromQuery = searchParams.get('user_id');
@@ -71,6 +72,7 @@ function SubscriptionSuccessContent() {
             if (userData.accountStatus === 'approved' && userData.subscription?.isActive) {
               console.log('✅ Subscription confirmed by webhook');
               setSubscriptionActive(true);
+              setSubscriptionAmount(userData.subscription?.amount ?? null);
               break;
             }
           }
@@ -155,7 +157,9 @@ function SubscriptionSuccessContent() {
                       <CreditCard className="w-4 h-4" />
                       <span>Monto</span>
                     </div>
-                    <p className="font-bold text-gray-900 dark:text-white">$2.500 ARS</p>
+                    <p className="font-bold text-gray-900 dark:text-white">
+                      {subscriptionAmount ? `$${subscriptionAmount.toLocaleString('es-AR')} ARS` : '—'}
+                    </p>
                   </div>
                 </div>
               </div>
