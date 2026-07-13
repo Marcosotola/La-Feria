@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import {
   BarChart3, User, ChevronDown, ChevronRight, Store, ExternalLink, House,
-  Heart, Star, ShoppingBag, Menu, X, Shield, MapPin, Briefcase
+  Heart, Star, ShoppingBag, Menu, X, Shield, MapPin, Briefcase, CreditCard
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -64,6 +64,7 @@ export default function DashboardTopNavigation() {
     { id: 'dashboard', label: 'Panel',     icon: BarChart3,   href: '/dashboard',               color: 'purple', desc: 'Vista general',             showAlways: true              },
     { id: 'profile',   label: 'Perfil',    icon: User,        href: '/dashboard/profile',       color: 'blue',   desc: 'Información personal',      showAlways: true              },
     { id: 'store',     label: 'Tienda',    icon: Store,       href: '/dashboard/tienda',        color: 'orange', desc: 'Gestiona tu negocio',       showAlways: true              },
+    { id: 'subscription', label: 'Suscripción', icon: CreditCard, href: '/dashboard/suscripcion', color: 'teal', desc: 'Tu suscripción y destacados', showAlways: true            },
     { id: 'empleos',   label: 'Empleos',   icon: Briefcase,   href: '/dashboard/empleos',       color: 'teal',   desc: 'Portal de empleos',         showAlways: true              },
     { id: 'favorites', label: 'Favoritos', icon: Heart,       href: '/dashboard/favorites',     color: 'pink',   desc: 'Lo que guardaste',          showAlways: true              },
     { id: 'reviews',   label: 'Reseñas',  icon: Star,        href: '/dashboard/reviews',       color: 'yellow', desc: 'Tus comentarios',           showAlways: true              },
@@ -189,8 +190,8 @@ export default function DashboardTopNavigation() {
               </div>
             </div>
             
-            {/* Ver Tienda */}
-            {storeUrl && (
+            {/* Ver Tienda - solo si ya está publicada; mientras esté pendiente, el único acceso es el modal de suscripción dentro del panel de tienda */}
+            {storeUrl && userData?.accountStatus === 'approved' && (
               <a
                 href={`/tienda/${storeUrl}`}
                 target="_blank"
@@ -231,8 +232,8 @@ export default function DashboardTopNavigation() {
               </div>
             </div>
             
-            {/* Ver Tienda */}
-            {storeUrl && (
+            {/* Ver Tienda - solo si ya está publicada */}
+            {storeUrl && userData?.accountStatus === 'approved' && (
               <a
                 href={`/tienda/${storeUrl}`}
                 target="_blank"
