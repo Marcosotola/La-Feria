@@ -24,7 +24,7 @@ export const createFair = async (fairData, creatorId) => {
     const docRef = await addDoc(collection(db, COLLECTION_NAME), {
       ...fairData,
       creatorId,
-      status: 'active',
+      status: 'pending', // Toda feria nueva arranca pendiente de aprobación por un admin
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       // El cliente debe enviar latitude y longitude para crear el GeoPoint
@@ -38,13 +38,13 @@ export const createFair = async (fairData, creatorId) => {
 };
 
 /**
- * Obtiene todas las ferias activas para el mapa
+ * Obtiene todas las ferias aprobadas y publicadas para el mapa/listado público
  */
 export const getAllFairs = async () => {
   try {
     const q = query(
-      collection(db, COLLECTION_NAME), 
-      where('status', '==', 'active'),
+      collection(db, COLLECTION_NAME),
+      where('status', '==', 'approved'),
       orderBy('createdAt', 'desc')
     );
     const querySnapshot = await getDocs(q);
@@ -60,6 +60,41 @@ export const getAllFairs = async () => {
   } catch (error) {
     console.error("Error getting fairs:", error);
     return [];
+  }
+};
+
+/**
+ * Obtiene TODAS las ferias sin filtrar por estado (uso exclusivo del panel de admin,
+ * para poder ver y moderar las pendientes de aprobación).
+ */
+export const getAllFairsForAdmin = async () => {
+  try {
+    const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      location: doc.data().location ? {
+        lat: doc.data().location.latitude,
+        lng: doc.data().location.longitude
+      } : null
+    }));
+  } catch (error) {
+    console.error("Error getting all fairs for admin:", error);
+    return [];
+  }
+};
+
+/**
+ * Aprueba o rechaza una feria pendiente (solo admin).
+ */
+export const setFairStatus = async (fairId, status) => {
+  try {
+    await updateDoc(doc(db, COLLECTION_NAME, fairId), { status, updatedAt: serverTimestamp() });
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating fair status:", error);
+    return { success: false, error: error.message };
   }
 };
 

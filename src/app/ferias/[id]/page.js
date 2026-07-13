@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { MapPin, Calendar, ChevronLeft, ExternalLink } from 'lucide-react'
 import Image from 'next/image'
 import { getFairById } from '@/lib/services/fairsService'
+import { useAuth } from '@/contexts/AuthContext'
 
 function Skeleton() {
   return (
@@ -24,6 +25,7 @@ function Skeleton() {
 export default function FeriaDetailPage() {
   const router = useRouter()
   const params = useParams()
+  const { user, loading: authLoading } = useAuth()
   const [fair, setFair] = useState(null)
   const [loading, setLoading] = useState(true)
   const [selectedImg, setSelectedImg] = useState(0)
@@ -36,9 +38,12 @@ export default function FeriaDetailPage() {
     })
   }, [params?.id])
 
-  if (loading) return <Skeleton />
+  if (loading || authLoading) return <Skeleton />
 
-  if (!fair) {
+  const isCreator = fair && user?.uid === fair.creatorId
+  const isVisible = fair && (fair.status === 'approved' || isCreator)
+
+  if (!fair || !isVisible) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 pb-28">
         <p className="text-5xl">🎪</p>

@@ -1,36 +1,64 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { MapPin, Search, X, Pencil, Trash2, Plus, Loader2, Eye } from 'lucide-react'
+import { MapPin, Search, X, Pencil, Trash2, Plus, Loader2, Eye, Check, Ban } from 'lucide-react'
 import Image from 'next/image'
-import { getAllFairs, deleteFair } from '@/lib/services/fairsService'
+import { getAllFairsForAdmin, deleteFair, setFairStatus } from '@/lib/services/fairsService'
+
+const STATUS_FILTER = [
+  { value: 'all', label: 'Todas' },
+  { value: 'pending', label: 'Pendientes' },
+  { value: 'approved', label: 'Aprobadas' },
+  { value: 'inactive', label: 'Inactivas' },
+]
+
+const STATUS_META = {
+  pending: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+  approved: { label: 'Aprobada', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+  inactive: { label: 'Inactiva', color: 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400' },
+}
 
 export default function AdminFeriasPage() {
   const router = useRouter()
   const [fairs, setFairs] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [updatingId, setUpdatingId] = useState(null)
 
   useEffect(() => {
-    getAllFairs().then(data => { setFairs(data); setLoading(false) })
+    getAllFairsForAdmin().then(data => { setFairs(data); setLoading(false) })
   }, [])
 
   const handleDelete = async (id) => {
     setDeleting(true)
     const result = await deleteFair(id)
-    if (result.success) setFairs(prev => prev.filter(f => f.id !== id))
+    if (result.success) setFairs(prev => prev.map(f => f.id === id ? { ...f, status: 'inactive' } : f))
     setConfirmDeleteId(null)
     setDeleting(false)
   }
 
-  const filtered = fairs.filter(f =>
-    !search.trim() ||
-    f.name?.toLowerCase().includes(search.toLowerCase()) ||
-    f.address?.toLowerCase().includes(search.toLowerCase()) ||
-    f.locationName?.toLowerCase().includes(search.toLowerCase())
-  )
+  const handleStatusChange = async (id, status) => {
+    setUpdatingId(id)
+    const result = await setFairStatus(id, status)
+    if (result.success) setFairs(prev => prev.map(f => f.id === id ? { ...f, status } : f))
+    setUpdatingId(null)
+  }
+
+  const filtered = fairs.filter(f => {
+    const matchSearch = !search.trim() ||
+      f.name?.toLowerCase().includes(search.toLowerCase()) ||
+      f.address?.toLowerCase().includes(search.toLowerCase()) ||
+      f.locationName?.toLowerCase().includes(search.toLowerCase())
+
+    const matchStatus = statusFilter === 'all' || f.status === statusFilter
+
+    return matchSearch && matchStatus
+  })
+
+  const pendingCount = fairs.filter(f => f.status === 'pending').length
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -40,7 +68,7 @@ export default function AdminFeriasPage() {
         <div>
           <h1 className="text-2xl font-black text-gray-900 dark:text-white">Ferias</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {loading ? '...' : `${fairs.length} ferias publicadas`}
+            {loading ? '...' : `${fairs.length} ferias en total${pendingCount ? ` · ${pendingCount} pendientes de aprobación` : ''}`}
           </p>
         </div>
         <button
@@ -49,6 +77,23 @@ export default function AdminFeriasPage() {
         >
           <Plus className="w-4 h-4" /> Nueva Feria
         </button>
+      </div>
+
+      {/* Filtros de estado */}
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+        {STATUS_FILTER.map(f => (
+          <button
+            key={f.value}
+            onClick={() => setStatusFilter(f.value)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+              statusFilter === f.value
+                ? 'bg-orange-600 text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-orange-400'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       {/* Search */}
@@ -103,12 +148,8 @@ export default function AdminFeriasPage() {
                     </div>
                   )}
                   <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                      fair.status === 'active'
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                        : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
-                    }`}>
-                      {fair.status === 'active' ? 'Activa' : 'Inactiva'}
+                    <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${(STATUS_META[fair.status] || STATUS_META.inactive).color}`}>
+                      {(STATUS_META[fair.status] || STATUS_META.inactive).label}
                     </span>
                     {fair.creatorId && (
                       <span className="text-[9px] text-gray-400 font-mono">uid: {fair.creatorId.slice(0, 8)}…</span>
@@ -132,6 +173,25 @@ export default function AdminFeriasPage() {
                         className="w-10 h-10 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-[10px] font-black flex items-center justify-center"
                       >
                         No
+                      </button>
+                    </>
+                  ) : fair.status === 'pending' ? (
+                    <>
+                      <button
+                        onClick={() => handleStatusChange(fair.id, 'approved')}
+                        disabled={updatingId === fair.id}
+                        title="Aprobar"
+                        className="w-10 h-10 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center disabled:opacity-60"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(fair.id, 'inactive')}
+                        disabled={updatingId === fair.id}
+                        title="Rechazar"
+                        className="w-10 h-10 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-xl flex items-center justify-center disabled:opacity-60"
+                      >
+                        <Ban className="w-4 h-4" />
                       </button>
                     </>
                   ) : (

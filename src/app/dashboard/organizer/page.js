@@ -130,11 +130,13 @@ export default function OrganizerDashboard() {
                     )}
                   </div>
                   <span className={`inline-block mt-1.5 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                    fair.status === 'active'
+                    fair.status === 'approved'
                       ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : fair.status === 'pending'
+                      ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
                       : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
                   }`}>
-                    {fair.status === 'active' ? 'Activa' : 'Inactiva'}
+                    {fair.status === 'approved' ? 'Publicada' : fair.status === 'pending' ? 'Pendiente de aprobación' : 'Inactiva'}
                   </span>
                 </div>
 
