@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { filterItemsByPublishedStore } from '@/lib/filterPublishedItems';
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import ProductCard from '@/components/tienda/productos/ProductCard';
 import SectionEmptyState from './SectionEmptyState';
@@ -115,10 +116,12 @@ export default function FeaturedProducts() {
       );
 
       const querySnapshot = await getDocs(q);
-      const products = querySnapshot.docs.map(doc => ({
+      let products = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+
+      products = await filterItemsByPublishedStore(products, 'usuarioId');
 
       console.log(`✅ ${products.length} productos destacados cargados`);
       setFeaturedProducts(products);

@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { filterItemsByPublishedStore } from '@/lib/filterPublishedItems';
 import { Sparkles, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import ProductCard from '@/components/tienda/productos/ProductCard';
 import ServiceCard from '@/components/tienda/servicios/ServiceCard';
@@ -114,6 +115,9 @@ export default function RecentItems() {
 
       // Combinar
       let todosLosItems = [...productos, ...servicios, ...empleos];
+
+      // Descartar items de tiendas sin suscripción activa o no publicadas
+      todosLosItems = await filterItemsByPublishedStore(todosLosItems, 'usuarioId');
 
       // Filtrar y Ordenar en Cliente
       todosLosItems = todosLosItems.filter(item => {

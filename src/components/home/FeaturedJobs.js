@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { filterItemsByPublishedStore } from '@/lib/filterPublishedItems';
 import { Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TIPOS_PUBLICACION } from '@/types/employment';
 import OfertaEmpleoCard from '@/components/tienda/empleos/OfertaEmpleoCard';
@@ -57,10 +58,12 @@ export default function FeaturedJobs() {
 
       const querySnapshot = await getDocs(q);
 
-      const jobs = querySnapshot.docs.map(doc => ({
+      let jobs = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+
+      jobs = await filterItemsByPublishedStore(jobs, 'usuarioId');
 
       console.log(`✅ ${jobs.length} empleos destacados cargados`);
       setFeaturedJobs(jobs);

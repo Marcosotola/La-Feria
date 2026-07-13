@@ -5,6 +5,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Crown, Star, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { filterItemsByPublishedStore } from '@/lib/filterPublishedItems';
 import ServiceCard from '../tienda/servicios/ServiceCard';
 import SectionEmptyState from './SectionEmptyState';
 
@@ -52,10 +53,12 @@ export default function FeaturedServices() {
         const querySnapshot = await getDocs(q);
 
         // ✅ OPTIMIZADO: tiendaInfo ya viene en cada servicio
-        const services = querySnapshot.docs.map(doc => ({
+        let services = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
+
+        services = await filterItemsByPublishedStore(services, 'usuarioId');
 
         console.log(`✅ ${services.length} servicios destacados cargados (sin consultas adicionales)`);
         setFeaturedServices(services);

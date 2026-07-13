@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { analyzeSearchIntent } from '@/lib/ai/geminiService';
 import { db } from '@/lib/firebase/config';
 import { collection, query, getDocs, limit } from 'firebase/firestore';
+import { filterItemsByPublishedStore } from '@/lib/filterPublishedItems';
 
 export async function POST(request) {
   try {
@@ -159,6 +160,8 @@ async function searchProducts(searchQuery, analysis) {
 
     console.log('✅ Productos después de filtrar:', productos.length);
 
+    productos = await filterItemsByPublishedStore(productos, 'usuarioId');
+
     return productos.slice(0, 10);
 
   } catch (error) {
@@ -240,6 +243,8 @@ async function searchServices(searchQuery, analysis) {
 
     console.log('✅ Servicios después de filtrar:', servicios.length);
 
+    servicios = await filterItemsByPublishedStore(servicios, 'usuarioId');
+
     return servicios.slice(0, 10);
 
   } catch (error) {
@@ -320,6 +325,8 @@ async function searchJobs(searchQuery, analysis) {
     });
 
     console.log('✅ Empleos después de filtrar:', empleos.length);
+
+    empleos = await filterItemsByPublishedStore(empleos, 'usuarioId');
 
     return empleos.slice(0, 10);
 
