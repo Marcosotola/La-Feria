@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { useAuth } from '@/contexts/AuthContext';
+import { canViewStore } from '@/lib/storeVisibility';
 import { getPublicStoreConfig } from '@/lib/storeConfigUtils';
 import StoreLayout from '@/components/tienda/StoreLayout';
 import PublicStoreEmploymentSection from '@/components/tienda/PublicStoreEmploymentSection';
@@ -14,7 +16,8 @@ import Link from 'next/link';
 export default function EmpleosPage() {
   const params = useParams();
   const { slug } = params;
-  
+  const { user, loading: authLoading } = useAuth();
+
   const [storeData, setStoreData] = useState(null);
   const [storeConfig, setStoreConfig] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -38,12 +41,7 @@ export default function EmpleosPage() {
         
         const userDoc = querySnapshot.docs[0];
         const userData = { id: userDoc.id, ...userDoc.data() };
-        
-        if (userData.accountStatus !== 'approved' && userData.accountStatus !== 'true') {
-          setError('Esta tienda no está disponible');
-          return;
-        }
-        
+
         const config = await getPublicStoreConfig(userData.id);
         
         setStoreData(userData);
@@ -86,7 +84,7 @@ export default function EmpleosPage() {
     setSearchQuery(query);
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -99,7 +97,7 @@ export default function EmpleosPage() {
     );
   }
 
-  if (error || !storeData || !storeConfig) {
+  if (error || !storeData || !storeConfig || !canViewStore(storeData, user?.uid)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">

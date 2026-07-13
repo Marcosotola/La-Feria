@@ -14,8 +14,8 @@ const TIPO_NEGOCIO_OPTIONS = [
 ];
 
 const STATUS_OPTIONS = [
-  { value: 'pending', label: 'Sin publicar' },
-  { value: 'approved', label: 'Publicada' },
+  { value: 'pending', label: 'Sin suscripción' },
+  { value: 'approved', label: 'Suscripción activa' },
   { value: 'suspended', label: 'Suspendida' },
 ];
 
@@ -37,6 +37,7 @@ export default function EditStoreModal({ store, isOpen, onClose, onStoreUpdated 
     accountStatus: 'pending',
     role: 'user',
     featured: false,
+    storePublished: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -53,6 +54,7 @@ export default function EditStoreModal({ store, isOpen, onClose, onStoreUpdated 
         accountStatus: store.accountStatus || 'pending',
         role: store.role || 'user',
         featured: store.featured || false,
+        storePublished: store.storePublished || false,
       });
       setError('');
     }
@@ -94,6 +96,7 @@ export default function EditStoreModal({ store, isOpen, onClose, onStoreUpdated 
         accountStatus: formData.accountStatus,
         role: formData.role,
         featured: formData.featured,
+        storePublished: formData.storePublished,
         updatedAt: new Date(),
       };
 
@@ -217,7 +220,7 @@ export default function EditStoreModal({ store, isOpen, onClose, onStoreUpdated 
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Estado y permisos</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Estado de publicación</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Suscripción</label>
                   <select
                     name="accountStatus"
                     value={formData.accountStatus}
@@ -239,6 +242,22 @@ export default function EditStoreModal({ store, isOpen, onClose, onStoreUpdated 
                   </select>
                 </div>
               </div>
+
+              {/* Published toggle */}
+              <label className="flex items-center gap-3 mt-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <input
+                  type="checkbox"
+                  name="storePublished"
+                  checked={formData.storePublished}
+                  onChange={handleChange}
+                  className="w-4 h-4 rounded accent-green-500"
+                />
+                <Store className="w-4 h-4 text-green-500 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Tienda publicada</p>
+                  <p className="text-xs text-gray-500">Visible al público (solo tiene efecto si además tiene suscripción activa)</p>
+                </div>
+              </label>
 
               {/* Featured toggle */}
               <label className="flex items-center gap-3 mt-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">

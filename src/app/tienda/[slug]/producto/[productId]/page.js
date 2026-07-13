@@ -61,7 +61,7 @@ export default async function ProductDetailPage({ params }) {
     if (product.usuarioId) {
       const storeDoc = await adminDb.collection('users').doc(product.usuarioId).get();
       if (storeDoc.exists) {
-        storeData = storeDoc.data();
+        storeData = { id: storeDoc.id, ...storeDoc.data() };
       }
     }
 

@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { doc, getDoc, collection, query, where, getDocs, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useAuth } from '@/contexts/AuthContext';
+import { canViewStore } from '@/lib/storeVisibility';
 import { getPublicStoreConfig } from '@/lib/storeConfigUtils';
 import StoreLayout from '@/components/tienda/StoreLayout';
 import { TIPOS_PUBLICACION } from '@/types/employment';
@@ -18,7 +19,7 @@ import Link from 'next/link';
 export default function EmpleoDetailPage() {
   const params = useParams();
   const { slug, empleoId } = params;
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const [storeData, setStoreData] = useState(null);
   const [storeConfig, setStoreConfig] = useState(null);
@@ -106,12 +107,6 @@ export default function EmpleoDetailPage() {
         return;
       }
 
-      if (userData.accountStatus !== 'approved' && userData.accountStatus !== 'true') {
-        console.error('Tienda no aprobada. Estado:', userData.accountStatus);
-        setError('Esta tienda no está disponible');
-        setLoading(false);
-        return;
-      }
       console.log('✓ Verificaciones completadas');
 
       // PASO 4: Cargar configuración (opcional)
@@ -199,7 +194,7 @@ export default function EmpleoDetailPage() {
   };
 
   // Estado de carga
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -211,7 +206,7 @@ export default function EmpleoDetailPage() {
   }
 
   // Estado de error
-  if (error || !storeData || !empleoData) {
+  if (error || !storeData || !empleoData || !canViewStore(storeData, user?.uid)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center max-w-md mx-auto px-4">

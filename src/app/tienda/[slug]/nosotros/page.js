@@ -5,12 +5,13 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { useAuth } from '@/contexts/AuthContext';
+import { canViewStore } from '@/lib/storeVisibility';
 import { getPublicStoreConfig } from '@/lib/storeConfigUtils';
 import StoreLayout from '@/components/tienda/StoreLayout';
-import { 
-  MapPin, 
-  Phone, 
-  Mail, 
+import {
+  MapPin,
+  Mail,
   Clock,
   Calendar,
   Facebook,
@@ -24,14 +25,16 @@ import {
   Eye,
   Award,
   Users,
-  ArrowLeft
+  ArrowLeft,
+  MessageCircle
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AboutPage() {
   const params = useParams();
   const { slug } = params;
-  
+  const { user, loading: authLoading } = useAuth();
+
   const [storeData, setStoreData] = useState(null);
   const [storeConfig, setStoreConfig] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -53,12 +56,7 @@ export default function AboutPage() {
         
         const userDoc = querySnapshot.docs[0];
         const userData = { id: userDoc.id, ...userDoc.data() };
-        
-        if (userData.accountStatus !== 'approved' && userData.accountStatus !== 'true') {
-          setError('Esta tienda no está disponible');
-          return;
-        }
-        
+
         const config = await getPublicStoreConfig(userData.id);
         
         setStoreData(userData);
@@ -92,7 +90,7 @@ export default function AboutPage() {
     return '';
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -105,7 +103,7 @@ export default function AboutPage() {
     );
   }
 
-  if (error || !storeData || !storeConfig) {
+  if (error || !storeData || !storeConfig || !canViewStore(storeData, user?.uid)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -280,24 +278,26 @@ export default function AboutPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Datos de contacto */}
                 <div className="space-y-4">
-                  {storeData.phone && (
+                  {storeConfig?.showWhatsApp && storeData.whatsapp && (
                     <a
-                      href={`tel:${storeData.phone}`}
+                      href={`https://wa.me/${storeData.whatsapp.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow group"
                     >
-                      <div 
+                      <div
                         className="p-3 rounded-lg"
                         style={{ backgroundColor: `${storeConfig?.primaryColor || '#ea580c'}20` }}
                       >
-                        <Phone 
+                        <MessageCircle
                           className="w-6 h-6"
                           style={{ color: storeConfig?.primaryColor || '#ea580c' }}
                         />
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Teléfono</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">WhatsApp</p>
                         <p className="font-semibold text-gray-900 dark:text-white group-hover:underline">
-                          {storeData.phone}
+                          Enviar mensaje
                         </p>
                       </div>
                     </a>
@@ -396,19 +396,19 @@ export default function AboutPage() {
               </div>
 
               {/* Redes Sociales */}
-              {(storeData.socialMedia?.facebook || 
-                storeData.socialMedia?.instagram || 
-                storeData.socialMedia?.linkedin || 
-                storeData.socialMedia?.twitter || 
-                storeData.website) && (
+              {(storeConfig?.socialLinks?.facebook ||
+                storeConfig?.socialLinks?.instagram ||
+                storeConfig?.socialLinks?.linkedin ||
+                storeConfig?.socialLinks?.twitter ||
+                storeConfig?.socialLinks?.website) && (
                 <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
                     Síguenos en redes sociales
                   </h3>
                   <div className="flex flex-wrap gap-3">
-                    {storeData.socialMedia?.facebook && (
+                    {storeConfig?.socialLinks?.facebook && (
                       <a
-                        href={storeData.socialMedia.facebook}
+                        href={storeConfig.socialLinks.facebook}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
@@ -416,9 +416,9 @@ export default function AboutPage() {
                         <Facebook className="w-6 h-6" />
                       </a>
                     )}
-                    {storeData.socialMedia?.instagram && (
+                    {storeConfig?.socialLinks?.instagram && (
                       <a
-                        href={storeData.socialMedia.instagram}
+                        href={storeConfig.socialLinks.instagram}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white rounded-lg transition-colors"
@@ -426,9 +426,9 @@ export default function AboutPage() {
                         <Instagram className="w-6 h-6" />
                       </a>
                     )}
-                    {storeData.socialMedia?.linkedin && (
+                    {storeConfig?.socialLinks?.linkedin && (
                       <a
-                        href={storeData.socialMedia.linkedin}
+                        href={storeConfig.socialLinks.linkedin}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-3 bg-blue-700 hover:bg-blue-800 text-white rounded-lg transition-colors"
@@ -436,9 +436,9 @@ export default function AboutPage() {
                         <Linkedin className="w-6 h-6" />
                       </a>
                     )}
-                    {storeData.socialMedia?.twitter && (
+                    {storeConfig?.socialLinks?.twitter && (
                       <a
-                        href={storeData.socialMedia.twitter}
+                        href={storeConfig.socialLinks.twitter}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-3 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors"
@@ -446,9 +446,9 @@ export default function AboutPage() {
                         <Twitter className="w-6 h-6" />
                       </a>
                     )}
-                    {storeData.website && (
+                    {storeConfig?.socialLinks?.website && (
                       <a
-                        href={storeData.website}
+                        href={storeConfig.socialLinks.website}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-3 bg-gray-700 hover:bg-gray-800 text-white rounded-lg transition-colors"

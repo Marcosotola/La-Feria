@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { getPublicStoreConfig } from '@/lib/storeConfigUtils';
+import { canViewStore } from '@/lib/storeVisibility';
 import { useAuth } from '@/contexts/AuthContext';
 import StoreLayout from '@/components/tienda/StoreLayout';
 import { 
@@ -33,7 +34,7 @@ import Link from 'next/link';
 export default function ResenasPage() {
   const params = useParams();
   const { slug } = params;
-  const { user, userData } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
   
   const [storeData, setStoreData] = useState(null);
   const [storeConfig, setStoreConfig] = useState(null);
@@ -73,12 +74,7 @@ export default function ResenasPage() {
         
         const userDoc = querySnapshot.docs[0];
         const userData = { id: userDoc.id, ...userDoc.data() };
-        
-        if (userData.accountStatus !== 'approved' && userData.accountStatus !== 'true') {
-          setError('Esta tienda no está disponible');
-          return;
-        }
-        
+
         const config = await getPublicStoreConfig(userData.id);
         
         setStoreData(userData);
@@ -251,7 +247,7 @@ export default function ResenasPage() {
     );
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -264,7 +260,7 @@ export default function ResenasPage() {
     );
   }
 
-  if (error || !storeData || !storeConfig) {
+  if (error || !storeData || !storeConfig || !canViewStore(storeData, user?.uid)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">

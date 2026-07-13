@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { canViewStore } from '@/lib/storeVisibility';
 import ProductCard from '@/components/tienda/productos/ProductCard';
 import ProductRatingsAndComments from '@/components/tienda/productos/ProductRatingsAndComments';
 import { ArrowLeft, Share2, Package } from 'lucide-react';
@@ -14,14 +16,23 @@ export default function ProductDetailClient({
 }) {
     const [product, setProduct] = useState(initialProduct);
     const [storeData, setStoreData] = useState(initialStoreData);
+    const { user, loading: authLoading } = useAuth();
 
     const handleRatingUpdate = async () => {
-        // In a real scenario, we might want to refetch here, 
+        // In a real scenario, we might want to refetch here,
         // but for now we keep the initial logic or just refresh the page
         window.location.reload();
     };
 
-    if (!product) {
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-600" />
+            </div>
+        );
+    }
+
+    if (!product || !canViewStore(storeData, user?.uid)) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
                 <div className="text-center max-w-md mx-auto">

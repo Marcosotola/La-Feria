@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { useAuth } from '@/contexts/AuthContext';
+import { canViewStore } from '@/lib/storeVisibility';
 import { getPublicStoreConfig } from '@/lib/storeConfigUtils';
 import StoreLayout from '@/components/tienda/StoreLayout';
 import Link from 'next/link';
@@ -13,13 +15,14 @@ import ServiceCard from '@/components/tienda/servicios/ServiceCard';
 import OfertaEmpleoCard from '@/components/tienda/empleos/OfertaEmpleoCard';
 import BusquedaEmpleoCard from '@/components/tienda/empleos/BusquedaEmpleoCard';
 import { 
-  Package, Wrench, Briefcase, Camera, MessageCircle, ArrowRight, Star, MapPin, Phone, Mail, Loader2
+  Package, Wrench, Briefcase, Camera, MessageCircle, ArrowRight, Star, MapPin, Mail, Loader2
 } from 'lucide-react';
 
 export default function StoreHomePage() {
   const params = useParams();
   const router = useRouter();
   const { slug } = params;
+  const { user, loading: authLoading } = useAuth();
   const [storeData, setStoreData] = useState(null);
   const [storeConfig, setStoreConfig] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -44,10 +47,6 @@ export default function StoreHomePage() {
         }
         const userDoc = querySnapshot.docs[0];
         const userData = { id: userDoc.id, ...userDoc.data() };
-        if (userData.accountStatus !== 'approved' && userData.accountStatus !== 'true') {
-          setError('Esta tienda no está disponible');
-          return;
-        }
         const config = await getPublicStoreConfig(userData.id);
         console.log('🎨 StoreConfig cargado:', config);
         console.log('🎨 Colores - Primario:', config?.primaryColor, 'Secundario:', config?.secondaryColor);
@@ -143,7 +142,7 @@ export default function StoreHomePage() {
   const getPrimaryColor = () => storeConfig?.primaryColor || '#ea580c';
   const getSecondaryColor = () => storeConfig?.secondaryColor || '#64748b';
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -154,11 +153,14 @@ export default function StoreHomePage() {
     );
   }
 
-  if (error || !storeData || !storeConfig) {
+  if (error || !storeData || !storeConfig || !canViewStore(storeData, user?.uid)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">{error || 'Tienda no encontrada'}</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">{error || 'Esta tienda no está disponible'}</h2>
+          <Link href="/" className="text-orange-600 hover:text-orange-700 font-medium">
+            Volver a La Feria
+          </Link>
         </div>
       </div>
     );
@@ -310,12 +312,12 @@ export default function StoreHomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">Información de Contacto</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              {storeData.phone && (
-                <a href={`tel:${storeData.phone}`} className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow">
-                  <Phone className="w-6 h-6" style={{ color: primaryColor }} />
+              {storeConfig?.showWhatsApp && storeData.whatsapp && (
+                <a href={`https://wa.me/${storeData.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                  <MessageCircle className="w-6 h-6" style={{ color: primaryColor }} />
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Teléfono</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{storeData.phone}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">WhatsApp</p>
+                    <p className="font-medium text-gray-900 dark:text-white">Enviar mensaje</p>
                   </div>
                 </a>
               )}

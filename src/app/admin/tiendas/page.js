@@ -13,16 +13,26 @@ import EditStoreModal from '@/components/admin/EditStoreModal';
 
 const STATUS_FILTER = [
   { value: 'all', label: 'Todas' },
-  { value: 'approved', label: 'Publicadas' },
-  { value: 'pending', label: 'Sin publicar' },
+  { value: 'published', label: 'Publicadas' },
+  { value: 'draft', label: 'Borrador (suscriptas)' },
+  { value: 'pending', label: 'Sin suscripción' },
+  { value: 'suspended', label: 'Suspendidas' },
   { value: 'featured', label: 'Destacadas' },
 ];
 
 const STATUS_META = {
-  approved: { label: 'Publicada', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', icon: CheckCircle },
-  pending: { label: 'Sin publicar', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400', icon: Clock },
+  published: { label: 'Publicada', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', icon: CheckCircle },
+  draft: { label: 'Borrador', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', icon: Clock },
+  pending: { label: 'Sin suscripción', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400', icon: Clock },
   suspended: { label: 'Suspendida', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', icon: AlertTriangle },
 };
+
+// Deriva el estado real de una tienda combinando accountStatus (suscripción) y storePublished
+function getStoreStatus(store) {
+  if (store.accountStatus === 'suspended') return 'suspended';
+  if (store.accountStatus !== 'approved' && store.accountStatus !== 'true') return 'pending';
+  return store.storePublished === true ? 'published' : 'draft';
+}
 
 export default function AdminTiendasPage() {
   const [stores, setStores] = useState([]);
@@ -90,15 +100,17 @@ export default function AdminTiendasPage() {
 
     const matchStatus =
       statusFilter === 'all' ||
-      (statusFilter === 'featured' ? s.featured : s.accountStatus === statusFilter);
+      (statusFilter === 'featured' ? s.featured : getStoreStatus(s) === statusFilter);
 
     return matchSearch && matchStatus;
   });
 
   const counts = {
     all: stores.length,
-    approved: stores.filter(s => s.accountStatus === 'approved').length,
-    pending: stores.filter(s => s.accountStatus === 'pending').length,
+    published: stores.filter(s => getStoreStatus(s) === 'published').length,
+    draft: stores.filter(s => getStoreStatus(s) === 'draft').length,
+    pending: stores.filter(s => getStoreStatus(s) === 'pending').length,
+    suspended: stores.filter(s => getStoreStatus(s) === 'suspended').length,
     featured: stores.filter(s => s.featured).length,
   };
 
@@ -166,7 +178,7 @@ export default function AdminTiendasPage() {
         <div className="space-y-2">
           {filtered.map(store => {
             const isConfirmingDelete = confirmDeleteId === store.id;
-            const statusInfo = STATUS_META[store.accountStatus] || STATUS_META.pending;
+            const statusInfo = STATUS_META[getStoreStatus(store)];
             const StatusIcon = statusInfo.icon;
 
             if (isConfirmingDelete) {

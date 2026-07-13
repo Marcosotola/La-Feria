@@ -15,57 +15,75 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Campos de users/{userId} que el dueño de la cuenta NO puede tocar directamente después de creada:
+    // los controla el webhook de MercadoPago (Admin SDK, no pasa por estas reglas) o un admin.
+    function userProtectedFields() {
+      return ['role', 'accountStatus', 'subscription', 'featured', 'featuredUntil', 'featuredPaymentId', 'featuredAmount', 'fechaDestacado'];
+    }
+
     // ===== USUARIOS =====
     match /users/{userId} {
       allow read: if true; // Perfiles de tienda son públicos (marketplace)
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isAdmin();
+
+      // En la creación (registro) el usuario elige su propio rol (user/puestero/organizer),
+      // pero nunca puede autoasignarse admin, ni arrancar ya suscripto/destacado.
+      allow create: if isOwner(userId) &&
+        (!('role' in request.resource.data) || request.resource.data.role != 'admin') &&
+        (!('accountStatus' in request.resource.data) || request.resource.data.accountStatus == 'pending') &&
+        !request.resource.data.keys().hasAny(['subscription', 'featured', 'featuredUntil', 'featuredPaymentId', 'featuredAmount', 'fechaDestacado']);
+
+      // Después de creada, el dueño no puede tocar los campos protegidos (solo admin o el webhook vía Admin SDK).
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(userProtectedFields())
+      );
       allow delete: if isAdmin();
     }
 
     match /users/{userId}/comments/{commentId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.authorId == request.auth.uid;
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.authorId || isAdmin());
     }
 
     // ===== PRODUCTOS =====
     match /productos/{productoId} {
       allow read: if true;
-      allow create: if isAuth();
-      allow update, delete: if isAuth() && (request.auth.uid == resource.data.storeId || isAdmin());
+      allow create: if isAuth() && request.resource.data.usuarioId == request.auth.uid;
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
     }
 
+    // Colección legacy en inglés (sin escritor activo en la app; se deja protegida por consistencia)
     match /products/{productId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.storeId == request.auth.uid;
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.storeId || isAdmin());
     }
 
     // ===== SERVICIOS =====
     match /servicios/{servicioId} {
       allow read: if true;
-      allow create: if isAuth();
-      allow update, delete: if isAuth() && (request.auth.uid == resource.data.storeId || isAdmin());
+      allow create: if isAuth() && request.resource.data.usuarioId == request.auth.uid;
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
     }
 
     // ===== EMPLEOS =====
     match /empleos/{empleoId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.usuarioId == request.auth.uid;
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
     }
 
     match /busquedasEmpleo/{busquedaId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.usuarioId == request.auth.uid;
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
     }
 
     // ===== RESERVAS =====
     match /reservas/{reservaId} {
       allow read: if isAuth() && (request.auth.uid == resource.data.clienteId || isAdmin());
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.clienteId == request.auth.uid;
       allow update: if isAuth() && (request.auth.uid == resource.data.clienteId || isAdmin());
       allow delete: if isAdmin();
     }
@@ -73,60 +91,60 @@ service cloud.firestore {
     // ===== TESTIMONIOS =====
     match /testimonios/{testimonioId} {
       allow read: if true;
-      allow create: if isAuth();
-      allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.userId || isAdmin());
     }
 
-    // testimonials (colección en inglés usada por testimonialsService.js)
+    // testimonials (colección en inglés, sin escritor activo en la app; se deja protegida por consistencia)
     match /testimonials/{testimonialId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.usuarioId == request.auth.uid;
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
     }
 
     // ===== VALORACIONES =====
     match /valoraciones/{valoracionId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.usuarioId == request.auth.uid;
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
     }
 
     match /valoraciones_servicios/{valoracionId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.usuarioId == request.auth.uid;
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
     }
 
     // ===== COMENTARIOS =====
     match /comentarios/{comentarioId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.usuarioId == request.auth.uid;
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
     }
 
     match /comentarios_servicios/{comentarioId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.usuarioId == request.auth.uid;
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
     }
 
     match /comentarios_empleos/{comentarioId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.usuarioId == request.auth.uid;
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
     }
 
     match /comments/{commentId} {
       allow read: if true;
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.usuarioId == request.auth.uid;
       allow update, delete: if isAuth() && (request.auth.uid == resource.data.usuarioId || isAdmin());
     }
 
     // ===== GALERÍA =====
     match /galeria/{galeriaId} {
       allow read: if true;
-      allow create: if isAuth();
-      allow update, delete: if isAuth() && (request.auth.uid == resource.data.storeId || isAdmin());
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && (request.auth.uid == resource.data.userId || isAdmin());
     }
 
     // ===== FAVORITOS =====
@@ -147,8 +165,18 @@ service cloud.firestore {
     // ===== FERIAS =====
     match /ferias/{feriaId} {
       allow read: if true;
-      allow create: if isAuth(); // Validamos que sea organizador en el backend o aquí
-      allow update, delete: if isAuth() && (request.auth.uid == resource.data.creatorId || isAdmin());
+      // Toda feria nueva nace 'pending': nadie puede autoaprobarse la publicación al crearla.
+      allow create: if isAuth() && request.resource.data.creatorId == request.auth.uid &&
+        (!('status' in request.resource.data) || request.resource.data.status == 'pending');
+      // El creador puede editar su feria y desactivarla (soft-delete), pero no aprobarla él mismo.
+      allow update: if isAdmin() || (
+        isAuth() && request.auth.uid == resource.data.creatorId &&
+        (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status']) ||
+          request.resource.data.status == 'inactive'
+        )
+      );
+      allow delete: if isAdmin();
     }
 
     // ===== CONFIGURACIÓN (precios, ajustes globales) =====
@@ -158,21 +186,20 @@ service cloud.firestore {
     }
 
     // ===== PAGOS =====
+    // Solo el Admin SDK (webhook) escribe estas colecciones; los clientes solo leen lo propio.
     match /featured_payments/{paymentId} {
       allow read: if isAuth() && (request.auth.uid == resource.data.userId || isAdmin());
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin();
+      allow write: if false;
     }
 
     match /subscription_payments/{paymentId} {
       allow read: if isAuth() && (request.auth.uid == resource.data.userId || isAdmin());
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin();
+      allow write: if false;
     }
 
     match /subscriptions/{userId} {
       allow read: if isOwner(userId) || isAdmin();
-      allow write: if isAdmin();
+      allow write: if false;
     }
   }
 }

@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { doc, getDoc, collection, query, where, getDocs, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { useAuth } from '@/contexts/AuthContext';
+import { canViewStore } from '@/lib/storeVisibility';
 import { getPublicStoreConfig } from '@/lib/storeConfigUtils';
 import StoreLayout from '@/components/tienda/StoreLayout';
 import ServiceCard from '@/components/tienda/servicios/ServiceCard';
@@ -15,6 +17,7 @@ import Link from 'next/link';
 export default function ServicioDetailPage() {
   const params = useParams();
   const { slug, servicioId } = params;
+  const { user, loading: authLoading } = useAuth();
 
   const [storeData, setStoreData] = useState(null);
   const [storeConfig, setStoreConfig] = useState(null);
@@ -48,11 +51,6 @@ export default function ServicioDetailPage() {
         id: userDoc.id,
         ...userDoc.data()
       };
-
-      if (userData.accountStatus !== 'approved' && userData.accountStatus !== 'true') {
-        setError('Esta tienda no está disponible');
-        return;
-      }
 
       // Cargar configuración de la tienda
       const config = await getPublicStoreConfig(userData.id);
@@ -136,7 +134,7 @@ export default function ServicioDetailPage() {
     loadData();
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -147,7 +145,7 @@ export default function ServicioDetailPage() {
     );
   }
 
-  if (error || !storeData || !servicioData) {
+  if (error || !storeData || !servicioData || !canViewStore(storeData, user?.uid)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
