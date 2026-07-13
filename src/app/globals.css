@@ -231,6 +231,7 @@ textarea {
 input[type="text"], 
 input[type="email"], 
 input[type="password"], 
+input[type="tel"], 
 textarea, 
 select {
   @apply text-gray-900 placeholder-gray-500;
@@ -241,6 +242,7 @@ select {
   input[type="text"], 
   input[type="email"], 
   input[type="password"], 
+  input[type="tel"], 
   textarea, 
   select {
     @apply dark:text-gray-100 dark:placeholder-gray-400;

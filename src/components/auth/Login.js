@@ -218,7 +218,7 @@ export default function Login({ onSwitchToRegister }) {
                       placeholder="Cod. Área + Número (Ej: 11 1234 5678)"
                       value={phoneParts.number}
                       onChange={(e) => setPhoneParts({ ...phoneParts, number: e.target.value.replace(/\D/g, '') })}
-                      className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-black text-lg"
+                      className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-black text-lg placeholder:font-normal placeholder:text-gray-400/80 dark:placeholder:text-gray-500/80"
                     />
                   </div>
                   <div className="px-4 space-y-0.5">
