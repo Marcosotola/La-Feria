@@ -34,7 +34,7 @@ export default function ServicioProfesionalCard({
 
   const handleWhatsAppContact = (e) => {
     e.stopPropagation();
-    const phone = servicio.contacto?.whatsapp || storeData?.phone || '';
+    const phone = servicio.contacto?.whatsapp || storeData?.phoneNumber || '';
     const message = `Hola! Me interesa tu servicio: ${servicio.titulo}`;
     const url = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
@@ -42,7 +42,7 @@ export default function ServicioProfesionalCard({
 
   const handlePhoneContact = (e) => {
     e.stopPropagation();
-    const phone = servicio.contacto?.telefono || storeData?.phone || '';
+    const phone = servicio.contacto?.telefono || storeData?.phoneNumber || '';
     window.open(`tel:${phone}`, '_self');
   };
 
@@ -236,7 +236,7 @@ export default function ServicioProfesionalCard({
                     Contactar profesional
                   </h4>
                   <div className="space-y-2">
-                    {(servicio.contacto?.whatsapp || storeData?.phone) && (
+                    {(servicio.contacto?.whatsapp || storeData?.phoneNumber) && (
                       <button
                         onClick={handleWhatsAppContact}
                         className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
@@ -247,7 +247,7 @@ export default function ServicioProfesionalCard({
                     )}
                     
                     <div className="grid grid-cols-2 gap-2">
-                      {(servicio.contacto?.telefono || storeData?.phone) && (
+                      {(servicio.contacto?.telefono || storeData?.phoneNumber) && (
                         <button
                           onClick={handlePhoneContact}
                           className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center space-x-2"

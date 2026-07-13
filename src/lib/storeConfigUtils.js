@@ -10,7 +10,8 @@ export const defaultStoreConfig = {
   showJobs: false,
   showGallery: false,
   showTestimonials: false,
-  
+  showAbout: true,
+
   // Personalización visual
   theme: 'modern',
   primaryColor: '#2563eb',
@@ -26,9 +27,7 @@ export const defaultStoreConfig = {
   },
   
   // Configuración de contacto
-  showWhatsApp: true,
-  showPhone: true,
-  showContactForm: true
+  showWhatsApp: true
 };
 
 // Obtener configuración de la tienda
@@ -96,13 +95,12 @@ export const getPublicStoreConfig = async (userId) => {
       showJobs: config.showJobs,
       showGallery: config.showGallery,
       showTestimonials: config.showTestimonials,
+      showAbout: config.showAbout,
       theme: config.theme,
       primaryColor: config.primaryColor,
       secondaryColor: config.secondaryColor,
       socialLinks: config.socialLinks,
-      showWhatsApp: config.showWhatsApp,
-      showPhone: config.showPhone,
-      showContactForm: config.showContactForm
+      showWhatsApp: config.showWhatsApp
     };
   } catch (error) {
     console.error('Error al obtener configuración pública de tienda:', error);

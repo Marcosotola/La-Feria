@@ -102,13 +102,14 @@ const StoreNavigation = ({
       });
     }
     
-    // Siempre mostrar "Nosotros"
-    items.push({
-      id: 'nosotros',
-      label: 'Nosotros',
-      icon: Users,
-      path: `/tienda/${storeSlug}/nosotros`
-    });
+    if (storeConfig?.showAbout) {
+      items.push({
+        id: 'nosotros',
+        label: 'Nosotros',
+        icon: Users,
+        path: `/tienda/${storeSlug}/nosotros`
+      });
+    }
     
     return items;
   };

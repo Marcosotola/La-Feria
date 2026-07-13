@@ -4,6 +4,8 @@
 import { useState, useEffect } from 'react';
 import StoreHeader from './StoreHeader';
 import StoreNavigation from './StoreNavigation';
+import StoreFooter from './StoreFooter';
+import StoreWhatsAppButton from './StoreWhatsAppButton';
 
 const StoreLayout = ({ 
   storeData, 
@@ -127,12 +129,16 @@ const StoreLayout = ({
       />
       
       {/* Contenido principal */}
-      <main className="pb-20 lg:pb-8 store-container">
+      <main className="pb-8 store-container">
         <div className="store-content">
           {children}
         </div>
       </main>
-      
+
+      <StoreFooter storeData={storeData} storeConfig={storeConfig} />
+
+      <StoreWhatsAppButton storeData={storeData} storeConfig={storeConfig} />
+
       {/* Overlay para cerrar menú móvil al hacer click fuera */}
       {isMobileMenuOpen && (
         <div 

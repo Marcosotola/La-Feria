@@ -702,14 +702,14 @@ export const autoCompletarDatosServicio = (servicioData, storeData) => {
       nombre: storeData?.businessName || storeData?.familyName || 'Tienda',
       slug: storeData?.storeSlug || '',
       ubicacion: storeData?.address || '',
-      telefono: storeData?.phone || '',
+      telefono: storeData?.phoneNumber || '',
       email: storeData?.email || '',
       logo: storeData?.storeLogo || storeData?.profileImage || null
     },
     // Auto-completar contacto si no está definido
     contacto: {
-      whatsapp: servicioData.contacto?.whatsapp || storeData?.phone || '',
-      telefono: servicioData.contacto?.telefono || storeData?.phone || '',
+      whatsapp: servicioData.contacto?.whatsapp || storeData?.phoneNumber || '',
+      telefono: servicioData.contacto?.telefono || storeData?.phoneNumber || '',
       email: servicioData.contacto?.email || storeData?.email || '',
       mensaje: servicioData.contacto?.mensaje || `Hola! Me interesa tu servicio: ${servicioData.titulo}`
     }

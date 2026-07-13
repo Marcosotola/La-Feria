@@ -58,7 +58,7 @@ export default function ProductCard({
 
   const handleWhatsAppContact = (e) => {
     e.stopPropagation();
-    const phone = product.contacto?.whatsapp || storeData?.phone || '';
+    const phone = product.contacto?.whatsapp || storeData?.phoneNumber || '';
     const message = product.contacto?.mensaje ||
       `Hola! Me interesa tu producto: ${product.titulo || product.nombre}`;
     const url = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
@@ -67,7 +67,7 @@ export default function ProductCard({
 
   const handlePhoneContact = (e) => {
     e.stopPropagation();
-    const phone = product.contacto?.telefono || storeData?.phone || '';
+    const phone = product.contacto?.telefono || storeData?.phoneNumber || '';
     window.open(`tel:${phone}`, '_self');
   };
 
@@ -295,7 +295,7 @@ export default function ProductCard({
 
               {showContactInfo && (
                 <div className="space-y-1.5 mt-2">
-                  {(product.contacto?.whatsapp || storeData?.phone) && (
+                  {(product.contacto?.whatsapp || storeData?.phoneNumber) && (
                     <button
                       onClick={handleWhatsAppContact}
                       className="w-full bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center space-x-1"
@@ -306,7 +306,7 @@ export default function ProductCard({
                   )}
 
                   <div className="grid grid-cols-2 gap-1">
-                    {(product.contacto?.telefono || storeData?.phone) && (
+                    {(product.contacto?.telefono || storeData?.phoneNumber) && (
                       <button
                         onClick={handlePhoneContact}
                         className="px-2 py-1.5 border border-orange-300 text-orange-700 dark:text-orange-300 rounded text-xs hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors flex items-center justify-center space-x-1"
@@ -530,7 +530,7 @@ export default function ProductCard({
                     Contactar vendedor
                   </h4>
                   <div className="space-y-2">
-                    {(product.contacto?.whatsapp || storeData?.phone) && (
+                    {(product.contacto?.whatsapp || storeData?.phoneNumber) && (
                       <button
                         onClick={handleWhatsAppContact}
                         className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
@@ -541,7 +541,7 @@ export default function ProductCard({
                     )}
 
                     <div className="grid grid-cols-2 gap-2">
-                      {(product.contacto?.telefono || storeData?.phone) && (
+                      {(product.contacto?.telefono || storeData?.phoneNumber) && (
                         <button
                           onClick={handlePhoneContact}
                           className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center space-x-2"

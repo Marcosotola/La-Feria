@@ -130,7 +130,7 @@ export default function ServiceCard({
 
   const handleWhatsAppContact = (e) => {
     e.stopPropagation();
-    const phone = service.contacto?.whatsapp || storeData?.phone || '';
+    const phone = service.contacto?.whatsapp || storeData?.phoneNumber || '';
     const message = service.contacto?.mensaje || 
       `Hola! Me interesa tu servicio: ${service.titulo}`;
     const url = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
@@ -139,7 +139,7 @@ export default function ServiceCard({
 
   const handlePhoneContact = (e) => {
     e.stopPropagation();
-    const phone = service.contacto?.telefono || storeData?.phone || '';
+    const phone = service.contacto?.telefono || storeData?.phoneNumber || '';
     window.open(`tel:${phone}`, '_self');
   };
 
@@ -384,7 +384,7 @@ export default function ServiceCard({
 
               {showContactInfo && (
                 <div className="space-y-1.5 mt-2">
-                  {(service.contacto?.whatsapp || storeData?.phone) && (
+                  {(service.contacto?.whatsapp || storeData?.phoneNumber) && (
                     <button
                       onClick={handleWhatsAppContact}
                       className="w-full bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center space-x-1"
@@ -395,7 +395,7 @@ export default function ServiceCard({
                   )}
                   
                   <div className="grid grid-cols-2 gap-1">
-                    {(service.contacto?.telefono || storeData?.phone) && (
+                    {(service.contacto?.telefono || storeData?.phoneNumber) && (
                       <button
                         onClick={handlePhoneContact}
                         className="px-2 py-1.5 border border-blue-300 text-blue-700 dark:text-blue-300 rounded text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center justify-center space-x-1"
@@ -661,7 +661,7 @@ export default function ServiceCard({
                     Contactar proveedor
                   </h4>
                   <div className="space-y-2">
-                    {(service.contacto?.whatsapp || storeData?.phone) && (
+                    {(service.contacto?.whatsapp || storeData?.phoneNumber) && (
                       <button
                         onClick={handleWhatsAppContact}
                         className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
@@ -672,7 +672,7 @@ export default function ServiceCard({
                     )}
                     
                     <div className="grid grid-cols-2 gap-2">
-                      {(service.contacto?.telefono || storeData?.phone) && (
+                      {(service.contacto?.telefono || storeData?.phoneNumber) && (
                         <button
                           onClick={handlePhoneContact}
                           className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center space-x-2"

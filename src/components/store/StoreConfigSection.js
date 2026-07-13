@@ -17,9 +17,7 @@ import {
   Twitter, 
   Linkedin, 
   Globe,
-  Phone,
   MessageCircle,
-  Mail,
   Save,
   Loader2,
   CheckCircle,
@@ -28,7 +26,8 @@ import {
   Download,
   Copy,
   ExternalLink,
-  Check
+  Check,
+  Heart
 } from 'lucide-react';
 
 const StoreConfigSection = ({ showMessage }) => {
@@ -69,6 +68,7 @@ const StoreConfigSection = ({ showMessage }) => {
             showJobs: false,
             showGallery: false,
             showTestimonials: false,
+            showAbout: true,
             theme: 'modern',
             primaryColor: '#2563eb',
             secondaryColor: '#64748b',
@@ -79,9 +79,7 @@ const StoreConfigSection = ({ showMessage }) => {
               linkedin: '',
               website: ''
             },
-            showWhatsApp: true,
-            showPhone: true,
-            showContactForm: true
+            showWhatsApp: true
           };
 
           if (userData.storeConfig) {
@@ -159,7 +157,8 @@ const StoreConfigSection = ({ showMessage }) => {
         });
         
         console.log('✅ Guardado exitoso');
-        
+        window.dispatchEvent(new Event('storeConfigUpdated'));
+
         setAutoSaving(false);
         setLastSaved(new Date());
         
@@ -189,6 +188,7 @@ const StoreConfigSection = ({ showMessage }) => {
       await updateDoc(userDocRef, {
         storeConfig: config
       });
+      window.dispatchEvent(new Event('storeConfigUpdated'));
       showMessage('success', 'Configuración guardada correctamente');
       console.log('✅ Guardado manual exitoso');
     } catch (error) {
@@ -303,6 +303,7 @@ const StoreConfigSection = ({ showMessage }) => {
   ];
 
   const contentSections = [
+    { key: 'showAbout', label: 'Nosotros', icon: Heart },
     { key: 'showProducts', label: 'Productos', icon: Store },
     { key: 'showServices', label: 'Servicios', icon: Settings },
     { key: 'showJobs', label: 'Empleos', icon: Globe },
@@ -311,9 +312,7 @@ const StoreConfigSection = ({ showMessage }) => {
   ];
 
   const contactSections = [
-    { key: 'showWhatsApp', label: 'WhatsApp', icon: MessageCircle },
-    { key: 'showPhone', label: 'Teléfono', icon: Phone },
-    { key: 'showContactForm', label: 'Formulario de Contacto', icon: Mail }
+    { key: 'showWhatsApp', label: 'WhatsApp', icon: MessageCircle }
   ];
 
   const socialPlatforms = [
@@ -532,11 +531,11 @@ const StoreConfigSection = ({ showMessage }) => {
 
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-          <Phone className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
-          Opciones de Contacto
+          <MessageCircle className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
+          Contacto
         </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <div className="grid grid-cols-1 gap-4">
           {contactSections.map(({ key, label, icon: Icon }) => (
             <label key={key} className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer">
               <input

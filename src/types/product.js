@@ -230,7 +230,7 @@ export const PRODUCTO_SCHEMA = {
   // Contacto (se auto-completa desde storeData)
   contacto: {
     whatsapp: '',              // Auto desde storeData.whatsapp
-    telefono: '',              // Auto desde storeData.phone
+    telefono: '',              // Auto desde storeData.phoneNumber
     email: '',                 // Auto desde storeData.email
     mensaje: ''                // Mensaje predefinido para WhatsApp
   },
@@ -346,8 +346,8 @@ export const autoCompletarDatosProducto = (productData, storeData) => {
   return {
     ...productData,
     contacto: {
-      whatsapp: productData.contacto?.whatsapp || storeData?.whatsapp || storeData?.phone || '',
-      telefono: productData.contacto?.telefono || storeData?.phone || '',
+      whatsapp: productData.contacto?.whatsapp || storeData?.whatsapp || storeData?.phoneNumber || '',
+      telefono: productData.contacto?.telefono || storeData?.phoneNumber || '',
       email: productData.contacto?.email || storeData?.email || '',
       mensaje: productData.contacto?.mensaje || `Hola! Me interesa tu producto: ${productData.titulo}`
     },

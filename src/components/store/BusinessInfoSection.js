@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { getAllFairs } from '@/lib/services/fairsService';
-import { Building2, Save, Search, MapPin, CheckCircle2, Plus, Loader2, X } from 'lucide-react';
+import { Building2, Save, Search, MapPin, CheckCircle2, Plus, Loader2, X, MessageCircle } from 'lucide-react';
 
 export default function BusinessInfoSection({ showMessage }) {
   const { userData, user, refreshUserData } = useAuth();
@@ -13,7 +13,8 @@ export default function BusinessInfoSection({ showMessage }) {
   const [formData, setFormData] = useState({
     businessName: '',
     slogan: '',
-    storeSlug: ''
+    storeSlug: '',
+    whatsapp: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -29,7 +30,8 @@ export default function BusinessInfoSection({ showMessage }) {
       setFormData({
         businessName: userData.businessName || '',
         slogan: userData.slogan || '',
-        storeSlug: userData.storeSlug || ''
+        storeSlug: userData.storeSlug || '',
+        whatsapp: userData.whatsapp || ''
       });
     }
   }, [userData]);
@@ -171,6 +173,22 @@ export default function BusinessInfoSection({ showMessage }) {
               />
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Solo letras, números y guiones.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <MessageCircle className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+              WhatsApp
+            </label>
+            <input
+              type="tel"
+              name="whatsapp"
+              value={formData.whatsapp}
+              onChange={handleInputChange}
+              placeholder="Ej: 5491112345678"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Código de país + área, sin espacios ni signos. Es el único canal de contacto que ven tus clientes en la tienda.</p>
           </div>
 
           <div className="flex justify-end">

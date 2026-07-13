@@ -321,7 +321,7 @@ export const formatWhatsAppMessage = (product, storeData) => {
  * Genera URL de contacto de WhatsApp
  */
 export const getWhatsAppUrl = (product, storeData) => {
-  const phone = product.contacto?.whatsapp || storeData?.phone || '';
+  const phone = product.contacto?.whatsapp || storeData?.phoneNumber || '';
   const cleanPhone = phone.replace(/\D/g, '');
   const message = formatWhatsAppMessage(product, storeData);
   
