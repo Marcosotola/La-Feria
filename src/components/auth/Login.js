@@ -10,10 +10,10 @@ import {
   Loader2,
   AlertCircle,
   Mail,
-  Lock
+  Lock,
+  Eye,
+  EyeOff
 } from 'lucide-react'
-import { doc, getDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase/config'
 import Toast from '@/components/ui/Toast'
 
 export default function Login({ onSwitchToRegister }) {
@@ -66,6 +66,7 @@ export default function Login({ onSwitchToRegister }) {
   
   const [emailData, setEmailData] = useState({ email: '', password: '' })
   const [loginMethod, setLoginMethod] = useState('phone')
+  const [showPassword, setShowPassword] = useState(false)
 
   // === TELÉFONO ===
   const handleSendOtp = async (e) => {
@@ -104,13 +105,9 @@ export default function Login({ onSwitchToRegister }) {
     setError(null)
     setShowToast(false)
     try {
-      const result = await confirmationResult.confirm(otp)
-      const userDoc = await getDoc(doc(db, 'users', result.user.uid))
-      if (userDoc.exists() && userDoc.data().profileCompleted) {
-        window.location.href = '/dashboard'
-      } else {
-        window.location.href = '/register'
-      }
+      // No navegamos manualmente: LoginPage ya redirige a /register o /dashboard
+      // en cuanto el contexto de auth detecta el usuario logueado (sin recargar la página).
+      await confirmationResult.confirm(otp)
     } catch (err) {
       setError('Código incorrecto')
       setShowToast(true)
@@ -125,12 +122,9 @@ export default function Login({ onSwitchToRegister }) {
     setError(null)
     setShowToast(false)
     try {
-      const result = await signInWithGoogle()
-      if (result?.needsCompletion) {
-        window.location.href = '/register'
-      } else {
-        window.location.href = '/dashboard'
-      }
+      // No navegamos manualmente: LoginPage ya redirige a /register o /dashboard
+      // en cuanto el contexto de auth detecta el usuario logueado (sin recargar la página).
+      await signInWithGoogle()
     } catch (err) {
       setError('Error al iniciar sesión con Google. Intentá de nuevo.')
       setShowToast(true)
@@ -146,12 +140,9 @@ export default function Login({ onSwitchToRegister }) {
     setError(null)
     setShowToast(false)
     try {
-      const result = await loginWithEmail(emailData.email, emailData.password)
-      if (!result?.userData?.profileCompleted) {
-        window.location.href = '/register'
-      } else {
-        window.location.href = '/dashboard'
-      }
+      // No navegamos manualmente: LoginPage ya redirige a /register o /dashboard
+      // en cuanto el contexto de auth detecta el usuario logueado (sin recargar la página).
+      await loginWithEmail(emailData.email, emailData.password)
     } catch (err) {
       let msg = 'Email o contraseña incorrectos'
       if (err.message?.includes('verifica') || err.message?.includes('verified')) {
@@ -257,13 +248,21 @@ export default function Login({ onSwitchToRegister }) {
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-brand-teal-500" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     placeholder="Tu contraseña"
                     value={emailData.password}
                     onChange={(e) => setEmailData({...emailData, password: e.target.value})}
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
+                    className="w-full pl-12 pr-12 py-4 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-teal-500 rounded-[2rem] transition-all font-bold"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
                 <button
                   type="submit"
@@ -304,9 +303,10 @@ export default function Login({ onSwitchToRegister }) {
                 setShowToast(false)
                 onSwitchToRegister()
               }}
-              className="w-full py-3 border-2 border-gray-100 dark:border-gray-800 rounded-2xl text-sm font-black text-gray-600 dark:text-gray-400 hover:border-brand-teal-500 hover:text-brand-teal-600 transition-all uppercase tracking-widest flex items-center justify-center gap-2 group"
+              className="w-full py-4 bg-white dark:bg-gray-900 hover:bg-brand-teal-50 dark:hover:bg-gray-800 border-2 border-brand-teal-600 rounded-[2rem] shadow-lg transition-all flex items-center justify-center gap-2 group"
             >
-              ¿No tienes cuenta? <span className="text-brand-teal-600 group-hover:scale-105 transition-transform">Regístrate gratis</span>
+              <span className="text-sm font-bold text-gray-500 dark:text-gray-400 normal-case">¿No tienes cuenta?</span>
+              <span className="text-sm font-black text-brand-teal-600 uppercase tracking-widest group-hover:scale-105 transition-transform">Regístrate gratis</span>
             </button>
           </div>
         )}

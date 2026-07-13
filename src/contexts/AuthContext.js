@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const userDoc = await getDoc(doc(db, 'users', authUser.uid));
-      
+
       if (!userDoc.exists()) {
         setNeedsProfileCompletion(true);
         return null;
@@ -135,7 +135,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-      if (!userCredential.user.emailVerified) {
+      // En desarrollo no exigimos verificación de email (igual que el bypass de reCAPTCHA para teléfono)
+      if (!userCredential.user.emailVerified && process.env.NODE_ENV !== 'development') {
         await firebaseSignOut(auth);
         throw new Error('Por favor verifica tu email antes de continuar');
       }
@@ -295,14 +296,14 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
       setUser(authUser);
-      
+
       if (authUser) {
         await loadUserData(authUser);
       } else {
         setUserData(null);
         setNeedsProfileCompletion(false);
       }
-      
+
       setLoading(false);
     });
 
