@@ -24,7 +24,7 @@ export const createFair = async (fairData, creatorId) => {
     const docRef = await addDoc(collection(db, COLLECTION_NAME), {
       ...fairData,
       creatorId,
-      status: 'pending', // Toda feria nueva arranca pendiente de aprobación por un admin
+      status: 'approved', // La feria queda visible apenas se crea, sin aprobación manual
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       // El cliente debe enviar latitude y longitude para crear el GeoPoint
@@ -42,21 +42,24 @@ export const createFair = async (fairData, creatorId) => {
  */
 export const getAllFairs = async () => {
   try {
+    // Ordenamos solo por createdAt (índice simple, automático) y filtramos el
+    // estado en el cliente para no depender de un índice compuesto que no existe.
     const q = query(
       collection(db, COLLECTION_NAME),
-      where('status', '==', 'approved'),
       orderBy('createdAt', 'desc')
     );
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      // Convertir GeoPoint a objeto plano para el componente de mapa
-      location: doc.data().location ? {
-        lat: doc.data().location.latitude,
-        lng: doc.data().location.longitude
-      } : null
-    }));
+    return querySnapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        // Convertir GeoPoint a objeto plano para el componente de mapa
+        location: doc.data().location ? {
+          lat: doc.data().location.latitude,
+          lng: doc.data().location.longitude
+        } : null
+      }))
+      .filter(fair => fair.status === 'approved');
   } catch (error) {
     console.error("Error getting fairs:", error);
     return [];
@@ -65,7 +68,7 @@ export const getAllFairs = async () => {
 
 /**
  * Obtiene TODAS las ferias sin filtrar por estado (uso exclusivo del panel de admin,
- * para poder ver y moderar las pendientes de aprobación).
+ * para poder ver y desactivar ferias existentes).
  */
 export const getAllFairsForAdmin = async () => {
   try {
@@ -82,19 +85,6 @@ export const getAllFairsForAdmin = async () => {
   } catch (error) {
     console.error("Error getting all fairs for admin:", error);
     return [];
-  }
-};
-
-/**
- * Aprueba o rechaza una feria pendiente (solo admin).
- */
-export const setFairStatus = async (fairId, status) => {
-  try {
-    await updateDoc(doc(db, COLLECTION_NAME, fairId), { status, updatedAt: serverTimestamp() });
-    return { success: true };
-  } catch (error) {
-    console.error("Error updating fair status:", error);
-    return { success: false, error: error.message };
   }
 };
 
