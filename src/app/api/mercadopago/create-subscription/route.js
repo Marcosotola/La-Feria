@@ -114,10 +114,10 @@ export async function POST(request) {
     console.error('Full error object:', error);
     console.error('❌ =================================');
     
-    // Determinar el mensaje de error apropiado
-    let errorMessage = 'Error creating subscription';
+    // Determinar el mensaje de error apropiado (siempre en español, nunca el mensaje crudo de MercadoPago)
+    let errorMessage = 'No pudimos crear tu suscripción. Intentá de nuevo en unos minutos.';
     let errorHint = '';
-    
+
     if (error.message?.includes('forbidden') || error.status === 403) {
       errorMessage = 'Las suscripciones no están habilitadas en tu cuenta de MercadoPago';
       errorHint = 'Debes activar las suscripciones en: MercadoPago → Tu negocio → Configuración → Suscripciones';
@@ -127,6 +127,8 @@ export async function POST(request) {
     } else if (error.message?.includes('not found') || error.status === 404) {
       errorMessage = 'Endpoint de suscripciones no disponible';
       errorHint = 'Puede que tu país no soporte suscripciones de MercadoPago';
+    } else if (error.message?.includes('invalid') || error.status === 400) {
+      errorMessage = 'Los datos de la suscripción no son válidos. Verificá tu email y volvé a intentar.';
     }
     
     return NextResponse.json({ 

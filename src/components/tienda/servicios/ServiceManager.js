@@ -42,10 +42,10 @@ export default function ServiceManager({ storeId, storeData }) {
       if (userDoc.exists()) {
         const userData = userDoc.data();
         return {
-          nombre: userData.businessName || userData.familyName || `${userData.firstName} ${userData.lastName}`.trim(),
-          slug: userData.storeSlug,
-          email: userData.email,
-          phone: userData.phone,
+          nombre: userData.businessName || userData.familyName || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || 'Tienda La Feria',
+          slug: userData.storeSlug || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
         };
       }
     } catch (error) {
@@ -126,7 +126,7 @@ export default function ServiceManager({ storeId, storeData }) {
       // ✅ CRÍTICO: Obtener y guardar tiendaInfo
       const tiendaInfo = await getTiendaInfo(storeId);
 
-      if (selectedService) {
+      if (selectedService?.id) {
         // Actualizar servicio existente
         const serviceRef = doc(db, 'servicios', selectedService.id);
         await updateDoc(serviceRef, {
@@ -246,12 +246,14 @@ export default function ServiceManager({ storeId, storeData }) {
   };
 
   const handleDuplicateService = (service) => {
+    const {
+      id, fechaCreacion, fechaActualizacion,
+      ...rest
+    } = service;
+
     const duplicatedService = {
-      ...service,
+      ...rest,
       titulo: `${service.titulo} (Copia)`,
-      id: undefined,
-      fechaCreacion: undefined,
-      fechaActualizacion: undefined,
       totalReservas: 0,
       totalVistas: 0,
       featured: false,

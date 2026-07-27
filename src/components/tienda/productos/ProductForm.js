@@ -93,6 +93,8 @@ export default function ProductForm({
   });
 
   const [errores, setErrores] = useState([]);
+  const [justFailedValidation, setJustFailedValidation] = useState(false);
+  const errorBannerRef = useRef(null);
   const fileInputRef = useRef(null);
   const [currentKeyword, setCurrentKeyword] = useState('');
 
@@ -281,6 +283,9 @@ export default function ProductForm({
     const validationErrors = validarProducto(productData);
     if (validationErrors.length > 0) {
       setErrores(validationErrors);
+      errorBannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setJustFailedValidation(true);
+      setTimeout(() => setJustFailedValidation(false), 2500);
       return;
     }
 
@@ -314,9 +319,14 @@ export default function ProductForm({
       <form onSubmit={handleSubmit} className="p-6 space-y-8">
         {/* Errores */}
         {errores.length > 0 && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div
+            ref={errorBannerRef}
+            role="alert"
+            aria-live="assertive"
+            className="bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-800 rounded-lg p-4 animate-in fade-in duration-300"
+          >
             <h3 className="text-red-800 dark:text-red-300 font-medium mb-2">
-              Corrige los siguientes errores:
+              Corrige los siguientes errores para poder guardar:
             </h3>
             <ul className="text-red-700 dark:text-red-400 text-sm space-y-1">
               {errores.map((error, index) => (
@@ -985,13 +995,17 @@ export default function ProductForm({
           <button
             type="submit"
             disabled={isLoading}
-            className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+            className={`px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all disabled:opacity-50 flex items-center space-x-2 ${
+              justFailedValidation ? 'ring-4 ring-red-400 animate-pulse' : ''
+            }`}
           >
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 <span>Guardando...</span>
               </>
+            ) : justFailedValidation ? (
+              <span>Revisá los errores arriba</span>
             ) : (
               <>
                 <Save className="w-4 h-4" />

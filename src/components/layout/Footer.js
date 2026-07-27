@@ -13,38 +13,22 @@ export default function Footer() {
         { name: 'Productos', href: '/productos', icon: Package },
         { name: 'Servicios', href: '/servicios', icon: Wrench },
         { name: 'Empleos', href: '/empleos', icon: Briefcase },
-        { name: 'Crear Tienda', href: '/crear-tienda' },
-        { name: 'Favoritos', href: '/favoritos' }
+        { name: 'Crear Tienda', href: '/register' },
+        { name: 'Favoritos', href: '/dashboard/favorites' }
       ]
     },
     community: {
       title: 'Comunidad',
       links: [
-        { name: 'Nuestra Historia', href: '/historia' },
-        { name: 'Testimonios', href: '/testimonios' },
-        { name: 'Eventos', href: '/eventos' },
-        { name: 'Blog', href: '/blog' },
-        { name: 'Voluntariado', href: '/voluntariado' }
-      ]
-    },
-    support: {
-      title: 'Soporte',
-      links: [
-        { name: 'Centro de Ayuda', href: '/ayuda' },
-        { name: 'Guías', href: '/guias' },
-        { name: 'Contacto', href: '/contacto' },
-        { name: 'Reportar Problema', href: '/reportar' },
-        { name: 'Estado del Servicio', href: '/estado' }
+        { name: 'Nuestra Historia', href: '/about' },
+        { name: 'Testimonios', href: '/#testimonios' }
       ]
     },
     legal: {
       title: 'Legal',
       links: [
-        { name: 'Términos de Uso', href: '/terminos' },
-        { name: 'Política de Privacidad', href: '/privacidad' },
-        { name: 'Cookies', href: '/cookies' },
-        { name: 'Política de Ventas', href: '/ventas' },
-        { name: 'Seguridad', href: '/seguridad' }
+        { name: 'Términos de Uso', href: '/terms' },
+        { name: 'Política de Privacidad', href: '/terms' }
       ]
     }
   }

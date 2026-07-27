@@ -84,7 +84,7 @@ export default function HomePage() {
       </section>
 
       {/* Sección de Testimonios */}
-      <section className="pb-2 lg:pb-4">
+      <section id="testimonios" className="pb-2 lg:pb-4">
         <Testimonials />
       </section>
 

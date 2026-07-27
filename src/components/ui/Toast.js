@@ -49,39 +49,37 @@ const Toast = ({ message, type, isVisible, onClose, duration = 4000 }) => {
   const { bg, icon: Icon, iconColor } = getToastStyles();
 
   return (
-    <div className="fixed top-4 left-0 right-0 z-[9999] flex justify-center px-4">
-      <div
-        className={`
-          ${bg} text-white rounded-lg shadow-lg p-4 animate-slide-in-top
-          backdrop-blur-sm border border-white/20 w-full max-w-md
-        `}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Icon className={`w-5 h-5 ${iconColor}`} />
-            <p className="text-sm font-medium">{message}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded"
-          >
-            <X className="w-4 h-4" />
-          </button>
+    <div
+      className={`
+        ${bg} text-white rounded-lg shadow-lg p-4 animate-slide-in-top
+        backdrop-blur-sm border border-white/20 w-full max-w-md pointer-events-auto
+      `}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <Icon className={`w-5 h-5 ${iconColor} flex-shrink-0`} />
+          <p className="text-sm font-medium break-words">{message}</p>
         </div>
-        
-        {/* Barra de progreso */}
-        {duration > 0 && (
-          <div className="w-full h-1 bg-white/20 rounded-b-lg overflow-hidden mt-2">
-            <div 
-              className="h-full bg-white/60 animate-progress-bar"
-              style={{ 
-                animation: `progress-bar ${duration}ms linear forwards`
-              }}
-            />
-          </div>
-        )}
+        <button
+          onClick={onClose}
+          className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded flex-shrink-0"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
-      
+
+      {/* Barra de progreso */}
+      {duration > 0 && (
+        <div className="w-full h-1 bg-white/20 rounded-b-lg overflow-hidden mt-2">
+          <div
+            className="h-full bg-white/60 animate-progress-bar"
+            style={{
+              animation: `progress-bar ${duration}ms linear forwards`
+            }}
+          />
+        </div>
+      )}
+
       <style jsx>{`
         @keyframes slide-in-top {
           from {
@@ -93,7 +91,7 @@ const Toast = ({ message, type, isVisible, onClose, duration = 4000 }) => {
             transform: translateY(0);
           }
         }
-        
+
         @keyframes progress-bar {
           from {
             width: 100%;
@@ -102,11 +100,11 @@ const Toast = ({ message, type, isVisible, onClose, duration = 4000 }) => {
             width: 0%;
           }
         }
-        
+
         .animate-slide-in-top {
           animation: slide-in-top 0.3s ease-out forwards;
         }
-        
+
         .animate-progress-bar {
           animation: progress-bar ${duration}ms linear forwards;
         }

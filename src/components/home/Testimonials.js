@@ -1,6 +1,7 @@
 // src/components/home/Testimonials.js
 'use client'
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Star, Quote, Plus, Trash2, Edit2, Shield, Loader2, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -38,6 +39,7 @@ export default function Testimonials({
   featuredOnly = false
 }) {
   const { user } = useAuth();
+  const router = useRouter();
   
   // Usar showNotification como fallback
   const showToast = showNotification;
@@ -389,10 +391,16 @@ export default function Testimonials({
               Únete a nuestra red de comercio local y haz crecer tu emprendimiento hoy mismo.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl">
+              <button
+                onClick={() => router.push(user ? '/dashboard/tienda' : '/register')}
+                className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
+              >
                 Crear mi tienda
               </button>
-              <button className="px-6 py-3 border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white font-medium rounded-lg transition-all duration-200">
+              <button
+                onClick={() => router.push('/servicios')}
+                className="px-6 py-3 border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white font-medium rounded-lg transition-all duration-200"
+              >
                 Explorar servicios
               </button>
             </div>

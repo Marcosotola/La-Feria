@@ -23,7 +23,10 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 const auth = getAuth(app);
 let db;
 try {
-  db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
+  db = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+    ignoreUndefinedProperties: true
+  });
 } catch (_) {
   // Ya inicializado (hot reload)
   db = getFirestore(app);

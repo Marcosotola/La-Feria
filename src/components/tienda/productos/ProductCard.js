@@ -571,5 +571,88 @@ export default function ProductCard({
     );
   }
 
+  // Variante Lista (fila horizontal)
+  if (variant === 'list') {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 flex">
+        <div
+          className={`relative w-28 h-28 sm:w-40 sm:h-40 flex-shrink-0 overflow-hidden ${onClick ? 'cursor-pointer' : ''}`}
+          onClick={onClick}
+        >
+          {images.length > 0 ? (
+            <Image
+              src={images[0]}
+              alt={product.titulo || product.nombre}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+              <Package className="w-8 h-8 text-gray-400" />
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between gap-2">
+              <h3
+                className={`font-bold text-sm sm:text-base text-gray-900 dark:text-white line-clamp-2 leading-tight ${onClick ? 'cursor-pointer hover:text-orange-600 dark:hover:text-orange-400' : ''}`}
+                onClick={onClick}
+              >
+                {product.titulo || product.nombre}
+              </h3>
+              <FavoriteButton
+                itemId={product.id}
+                itemType="product"
+                size="sm"
+              />
+            </div>
+
+            {showStoreInfo && (product.tiendaInfo?.nombre || storeData?.businessName) && (
+              <div className="flex items-center gap-1 mt-1 text-xs text-gray-500 dark:text-gray-400 truncate">
+                <Store className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{product.tiendaInfo?.nombre || storeData?.businessName}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-end justify-between gap-2 mt-2">
+            <div>
+              {product.tipoPrecio === TIPOS_PRECIO.FIJO ? (
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-base sm:text-lg font-bold text-orange-600 dark:text-orange-400">
+                    {formatearPrecio(product.precio, product.moneda)}
+                  </span>
+                  {product.precioAnterior && (
+                    <span className="text-xs text-gray-500 line-through">
+                      {formatearPrecio(product.precioAnterior, product.moneda)}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 capitalize">
+                  {product.tipoPrecio === 'negociable' && 'Negociable'}
+                  {product.tipoPrecio === 'consultar' && 'Consultar'}
+                  {product.tipoPrecio === 'gratis' && 'Gratis'}
+                </span>
+              )}
+            </div>
+
+            {showContactInfo && (product.contacto?.whatsapp || storeData?.phoneNumber) && (
+              <button
+                onClick={handleWhatsAppContact}
+                className="flex-shrink-0 bg-green-500 hover:bg-green-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">WhatsApp</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return null;
 }

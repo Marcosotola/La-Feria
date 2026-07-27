@@ -4,8 +4,10 @@
 import Toast from './Toast';
 
 const ToastContainer = ({ toasts, onHideToast }) => {
+  if (!toasts.length) return null;
+
   return (
-    <>
+    <div className="fixed top-4 left-0 right-0 z-[9999] flex flex-col items-center gap-2 px-4 pointer-events-none">
       {toasts.map((toast) => (
         <Toast
           key={toast.id}
@@ -16,7 +18,7 @@ const ToastContainer = ({ toasts, onHideToast }) => {
           onClose={() => onHideToast(toast.id)}
         />
       ))}
-    </>
+    </div>
   );
 };
 

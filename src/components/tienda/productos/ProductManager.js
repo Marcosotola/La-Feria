@@ -43,10 +43,10 @@ export default function ProductManager({ storeId, storeData }) {
       if (userDoc.exists()) {
         const userData = userDoc.data();
         return {
-          nombre: userData.businessName || userData.familyName || `${userData.firstName} ${userData.lastName}`.trim(),
-          slug: userData.storeSlug,
-          email: userData.email,
-          phone: userData.phone,
+          nombre: userData.businessName || userData.familyName || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || 'Tienda La Feria',
+          slug: userData.storeSlug || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
         };
       }
     } catch (error) {
@@ -127,7 +127,7 @@ export default function ProductManager({ storeId, storeData }) {
       // ✅ CRÍTICO: Obtener y guardar tiendaInfo
       const tiendaInfo = await getTiendaInfo(storeId);
 
-      if (selectedProduct) {
+      if (selectedProduct?.id) {
         // Actualizar producto existente
         const productRef = doc(db, 'productos', selectedProduct.id);
         await updateDoc(productRef, {
@@ -252,12 +252,14 @@ export default function ProductManager({ storeId, storeData }) {
   };
 
   const handleDuplicateProduct = (product) => {
+    const {
+      id, fechaCreacion, fechaActualizacion,
+      ...rest
+    } = product;
+
     const duplicatedProduct = {
-      ...product,
+      ...rest,
       titulo: `${product.titulo} (Copia)`,
-      id: undefined,
-      fechaCreacion: undefined,
-      fechaActualizacion: undefined,
       totalVentas: 0,
       totalVistas: 0,
       featured: false,

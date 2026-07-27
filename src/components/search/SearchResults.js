@@ -11,7 +11,8 @@ import {
   SearchX,
   Store,
   ChevronRight,
-  X
+  X,
+  MapPin
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,7 +34,7 @@ export default function SearchResults({ results, error, searchQuery, onClose }) 
   if (!results) return null;
 
   const totalResults =
-    results.productos.length + results.servicios.length + results.empleos.length;
+    results.productos.length + results.servicios.length + results.empleos.length + (results.ferias?.length || 0);
 
   if (totalResults === 0) {
     const keywords = results?.analysis?.palabras_clave?.filter(w => w.length > 3).slice(0, 6) || [];
@@ -98,6 +99,8 @@ export default function SearchResults({ results, error, searchQuery, onClose }) 
       router.push(`/tienda/${slug}/servicios/${item.id}`);
     } else if (type === 'empleo') {
       router.push(`/tienda/${slug}/empleos/${item.id}`);
+    } else if (type === 'feria') {
+      router.push(`/ferias/${item.id}`);
     }
   };
 
@@ -139,7 +142,9 @@ export default function SearchResults({ results, error, searchQuery, onClose }) 
               <div className="flex items-center gap-1.5 mt-1">
                 <div className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
                   <Store className="w-3 h-3" />
-                  <span className="truncate">{item.tiendaInfo?.nombre || 'Tienda Local'}</span>
+                  <span className="truncate">
+                    {type === 'feria' ? (item.ubicacion || 'Feria') : (item.tiendaInfo?.nombre || 'Tienda Local')}
+                  </span>
                 </div>
               </div>
 
@@ -150,9 +155,9 @@ export default function SearchResults({ results, error, searchQuery, onClose }) 
                     {(type === 'servicio') && ' +'}
                     {(type === 'empleo' && (item.salario?.maximo || item.pretensionSalarial?.maximo)) && ` - $${(item.salario?.maximo || item.pretensionSalarial?.maximo).toLocaleString()}`}
                   </span>
-                ) : (
+                ) : type !== 'feria' ? (
                   <span className="text-xs font-medium text-gray-400">Consultar</span>
-                )}
+                ) : <span />}
                 
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0">
                   <ChevronRight className={cn("w-4 h-4", colorClass)} />
@@ -214,12 +219,22 @@ export default function SearchResults({ results, error, searchQuery, onClose }) 
         )}
 
         {results.empleos.length > 0 && (
-          <ResultSection 
-            title="Empleos y Oportunidades" 
-            icon={Briefcase} 
-            items={results.empleos} 
+          <ResultSection
+            title="Empleos y Oportunidades"
+            icon={Briefcase}
+            items={results.empleos}
             type="empleo"
-            colorClass="text-purple-500" 
+            colorClass="text-purple-500"
+          />
+        )}
+
+        {results.ferias?.length > 0 && (
+          <ResultSection
+            title="Ferias"
+            icon={MapPin}
+            items={results.ferias}
+            type="feria"
+            colorClass="text-emerald-500"
           />
         )}
       </div>

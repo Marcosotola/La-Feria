@@ -29,6 +29,7 @@ export default function ChatWithMily() {
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState(null);
   const [searchError, setSearchError] = useState(null);
+  const [voiceError, setVoiceError] = useState(null);
 
   // Refs
   const messagesEndRef = useRef(null);
@@ -67,15 +68,28 @@ export default function ChatWithMily() {
         // Si es final, disparar búsqueda
         if (final) {
           handleInputChange({ target: { value: final } });
-          setIsListening(false);
         }
+      };
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
       };
 
       recognitionRef.current.onerror = (event) => {
         console.error('Error de reconocimiento:', event.error);
         setIsListening(false);
-        if (event.error === 'not-allowed') {
-          alert('El micrófono está bloqueado. Activalo en la configuración del navegador.');
+
+        const errorMessages = {
+          'not-allowed': 'El micrófono está bloqueado. Activalo en la configuración del navegador.',
+          'no-speech': 'No se detectó ninguna voz. Intentá de nuevo.',
+          'audio-capture': 'No se encontró un micrófono disponible.',
+          'network': 'Error de red al reconocer la voz. Revisá tu conexión.',
+          'service-not-allowed': 'El servicio de reconocimiento de voz no está disponible.',
+        };
+
+        // 'aborted' ocurre cuando el propio usuario corta el reconocimiento; no hace falta mostrar nada
+        if (event.error !== 'aborted') {
+          setVoiceError(errorMessages[event.error] || 'Ocurrió un error con el reconocimiento de voz. Intentá de nuevo.');
         }
       };
 
@@ -84,6 +98,13 @@ export default function ChatWithMily() {
       };
     }
   }, []);
+
+  // Ocultar el error de voz automáticamente
+  useEffect(() => {
+    if (!voiceError) return;
+    const timer = setTimeout(() => setVoiceError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [voiceError]);
 
   // Cerrar resultados al hacer clic fuera
   useEffect(() => {
@@ -258,12 +279,20 @@ export default function ChatWithMily() {
       return;
     }
 
+    setVoiceError(null);
+
     if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
+      try {
+        recognitionRef.current.stop();
+      } catch (_) {
+        // ya estaba detenido
+      }
     } else {
-      recognitionRef.current.start();
-      setIsListening(true);
+      try {
+        recognitionRef.current.start();
+      } catch (_) {
+        // ya estaba escuchando (start() llamado dos veces): ignorar
+      }
     }
   };
 
@@ -400,6 +429,15 @@ export default function ChatWithMily() {
           position: absolute;
         }
       `}</style>
+
+      {/* Error de reconocimiento de voz */}
+      {voiceError && !isOpen && (
+        <div className="absolute left-0 right-0 mt-2 z-40 flex justify-center animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-xs font-medium px-3 py-2 rounded-xl shadow-lg max-w-[90%] text-center">
+            {voiceError}
+          </div>
+        </div>
+      )}
 
       {/* Resultados de Búsqueda */}
       {showResults && !isOpen && (

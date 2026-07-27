@@ -4,10 +4,9 @@
 import { useState, useEffect, Suspense } from 'react'
 import { Search, Filter, Grid, List, MapPin } from 'lucide-react'
 import {
-  CATEGORIAS_PRODUCTO,
-  CATEGORIAS_PRODUCTO_LABELS,
   CONDICION_PRODUCTO
 } from '@/types/product'
+import { CATEGORIAS_PRODUCTOS } from '@/types/categories'
 import { collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
 import ProductCard from '@/components/tienda/productos/ProductCard'
@@ -256,9 +255,9 @@ function FiltersSidebar({ filtros, setFiltros, mostrar }) {
           className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         >
           <option value="">Todas las categorías</option>
-          {Object.entries(CATEGORIAS_PRODUCTO_LABELS).map(([key, label]) => (
-            <option key={key} value={CATEGORIAS_PRODUCTO[key]}>
-              {label}
+          {Object.values(CATEGORIAS_PRODUCTOS).map(categoria => (
+            <option key={categoria.id} value={categoria.id}>
+              {categoria.nombre}
             </option>
           ))}
         </select>
